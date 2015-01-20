@@ -29,7 +29,7 @@ module Webistrano
         validate
       else
         # a fake deployment in order to access tasks
-        @logger = Capistrano::Logger.new
+        @logger = Webistrano::Logger.new
       end
     end
 
