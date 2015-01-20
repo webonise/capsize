@@ -117,4 +117,5 @@ DEPENDENCIES
   open4
   prototype_legacy_helper (= 0.0.0)!
   rails (= 3.0.20)
+  sshkit (~> 1.6.1)
   syntax

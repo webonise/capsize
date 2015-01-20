@@ -16,6 +16,7 @@ gem 'capistrano'
 gem 'highline'
 gem 'open4'
 gem 'syntax'
+gem 'sshkit', '~> 1.6.1'
 
 # could not make it work
 #gem 'exception_notification', :require => 'exception_notifier'
