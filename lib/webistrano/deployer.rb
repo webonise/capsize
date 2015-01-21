@@ -59,8 +59,9 @@ module Webistrano
     def new_execute!
       config = instantiate_configuration
       config.logger.level = options[:verbose]
-      set_project_and_stage_names(config)
+      set_up_config(config)
       find_or_create_project_dir(config.fetch(:webistrano_project))
+      write_capfile(config)
 
       if status == :capistrano_abort
         false
@@ -131,14 +132,14 @@ module Webistrano
     end
 
     def set_up_config(config)
-      set_pre_vars(config)
-      load_recipes(config)
+      # set_pre_vars(config)
+      # load_recipes(config)
 
       set_project_and_stage_names(config)
       set_stage_configuration(config)
       set_stage_roles(config)
 
-      load_project_template_tasks(config)
+      # load_project_template_tasks(config)
       load_stage_custom_recipes(config)
       config
     end
@@ -318,12 +319,19 @@ module Webistrano
     end
 
     def find_or_create_project_dir(project)
-      create_project_home_dir unless Dir.exists?('capsize_projects')
+      FileUtils.mkdir_p('capsize_projects') unless Dir.exists?('capsize_projects')
       FileUtils.mkdir_p("capsize_projects/#{project}") unless Dir.exists?("/capsize_projects/#{project}")
     end
 
-    def create_project_home_dir
-      FileUtils.mkdir_p('capsize_projects')
+    def write_capfile(config)
+      File.open("capsize_projects/#{config.fetch(:webistrano_project)}/Capfile", 'w+') do |f|
+        f.puts "require 'capistrano/all'"
+        deployment.stage.project.configuration_parameters.each do |parameter|
+          f.puts "set :#{parameter.name}, #{parameter.value}"
+        end
+        cap_end = File.open("lib/webistrano/cap-end.txt")
+        IO.copy_stream(cap_end, f)
+      end
     end
   end
 end
