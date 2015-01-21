@@ -1,3 +1,6 @@
+require 'find'
+require 'fileutils'
+
 module Webistrano
   class Deployer
     # Mix-in the Capistrano behavior
@@ -43,7 +46,7 @@ module Webistrano
     def invoke_task!
       options[:actions] = deployment.task
 
-      case execute!
+      case new_execute!
       when false
         deployment.complete_with_error!
         false
@@ -51,6 +54,22 @@ module Webistrano
         deployment.complete_successfully!
         true
       end
+    end
+
+    def new_execute!
+      config = instantiate_configuration
+      config.logger.level = options[:verbose]
+      set_project_and_stage_names(config)
+      find_or_create_project_dir(config.fetch(:webistrano_project))
+
+      if status == :capistrano_abort
+        false
+      else
+        config
+      end
+    rescue Exception => error
+      handle_error(error)
+      return false
     end
 
     # modified version of Capistrano::CLI::Execute's execute!
@@ -298,5 +317,13 @@ module Webistrano
       config.task_list(:all)
     end
 
+    def find_or_create_project_dir(project)
+      create_project_home_dir unless Dir.exists?('capsize_projects')
+      FileUtils.mkdir_p("capsize_projects/#{project}") unless Dir.exists?("/capsize_projects/#{project}")
+    end
+
+    def create_project_home_dir
+      FileUtils.mkdir_p('capsize_projects')
+    end
   end
 end
