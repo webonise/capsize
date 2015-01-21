@@ -280,8 +280,8 @@ module Webistrano
       case error
       when Net::SSH::AuthenticationFailed
         logger.important "authentication failed for `#{error.message}'"
-      when Capistrano::Error
-        logger.important(error.message)
+      # when Capistrano::Error
+      #   logger.important(error.message)
       else
         # we did not expect this error, so log the trace
         logger.important(error.message + "\n" + error.backtrace.join("\n"))
