@@ -147,7 +147,7 @@ class DeploymentsControllerTest < ActionController::TestCase
     assert_response :redirect
     assert_redirected_to project_stage_deployment_path(@project, @stage, @deployment)
     @deployment.reload
-    assert @deployment.canceled?, flash[:error]
+    assert @deployment.canceled?
   end
 
 end
