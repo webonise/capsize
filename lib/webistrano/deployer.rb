@@ -1,10 +1,14 @@
 require 'find'
 require 'fileutils'
+require 'capistrano/all'
+
 
 module Webistrano
   class Deployer
     # Mix-in the Capistrano behavior
     # include Capistrano::CLI::Execute, Capistrano::CLI::Options
+    include Capistrano
+    include Capistrano::DSL::Paths
 
     # holds the capistrano options, see capistrano/lib/capistrano/cli/options.rb
     attr_accessor :options
@@ -32,7 +36,7 @@ module Webistrano
         validate
       else
         # a fake deployment in order to access tasks
-        @logger = Webistrano::Logger.new
+        @logger = Webistrano::Logger.new(deployment)
       end
     end
 
@@ -61,7 +65,17 @@ module Webistrano
       config.logger.level = options[:verbose]
       set_up_config(config)
       find_or_create_project_dir(config.fetch(:webistrano_project))
-      write_capfile(config)
+      write_deploy(config)
+      write_stage(deployment.stage)
+
+      require "webistrano/capsize_setup"
+      capsize_setup(deployment.stage.name)
+      require "capistrano/deploy"
+      status = catch(:abort_called_by_capistrano){
+        Dir.glob('capistrano/tasks/*.rake').each { |r| import r }
+        Capistrano::Application.invoke("#{deployment.stage.name}")
+        Capistrano::Application.invoke('deploy')
+      }
 
       if status == :capistrano_abort
         false
@@ -323,15 +337,31 @@ module Webistrano
       FileUtils.mkdir_p("capsize_projects/#{project}") unless Dir.exists?("/capsize_projects/#{project}")
     end
 
-    def write_capfile(config)
-      File.open("capsize_projects/#{config.fetch(:webistrano_project)}/Capfile", 'w+') do |f|
-        f.puts "require 'capistrano/all'"
+    def write_deploy(config)
+      File.open("capsize_projects/#{config.fetch(:webistrano_project)}/deploy.rb", 'w+') do |f|
+        # f.puts "require 'capistrano/all'"
+        f.puts "stages = '#{deployment.stage.name}'"
         deployment.stage.project.configuration_parameters.each do |parameter|
-          f.puts "set :#{parameter.name}, #{parameter.value}"
+          f.puts "set :#{parameter.name}, '#{parameter.value}'"
         end
-        cap_end = File.open("lib/webistrano/cap-end.txt")
-        IO.copy_stream(cap_end, f)
+        # f.puts "require 'capistrano/setup'"
+        # f.puts "require 'capistrano/deploy'"
+        # f.puts "Dir.glob('capistrano/tasks/*.rake').each { |r| import r }"
+        # f.puts "Capistrano::Application.invoke('#{deployment.stage.name}')"
+        # f.puts "Capistrano::Application.invoke('deploy')"
       end
+    end
+
+    def write_stage(stage)
+      File.open("capsize_projects/#{stage.project.webistrano_project_name}/#{stage.name}.rb", 'w+') do |f|
+        stage.roles.each do |role|
+          f.puts "role :#{role.name}, %w{#{find_host_user(stage.project)}@#{role.host.name}}"
+        end
+      end
+    end
+
+    def find_host_user(project)
+      project.configuration_parameters.find_by_name('user').value
     end
   end
 end
