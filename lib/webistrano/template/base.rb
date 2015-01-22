@@ -12,19 +12,19 @@ module Webistrano
         :runner => 'user to run as with sudo',
         :use_sudo => 'true',
         :deploy_to => '/path/to/deployment_base',
-        :repository => 'https://svn.example.com/project/trunk'
+        :repo_url => 'https://svn.example.com/project/trunk'
       }.freeze
-      
+
       DESC = <<-'EOS'
         Base template that the other templates use to inherit from.
         Defines basic Capistrano configuration parameters.
         Overrides no default Capistrano tasks.
       EOS
-      
+
       TASKS =  <<-'EOS'
         # allocate a pty by default as some systems have problems without
         default_run_options[:pty] = true
-      
+
         # set Net::SSH ssh options through normal variables
         # at the moment only one SSH key is supported as arrays are not
         # parsed correctly by Webistrano::Deployer.type_cast (they end up as strings)
