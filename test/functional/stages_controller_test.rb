@@ -9,7 +9,7 @@ class StagesControllerTest < ActionController::TestCase
   end
 
   def test_should_get_index
-    get :index, :project_id => @project.id
+    get :index, :project_id => @project.id, :format => 'xml'
     assert_response :success
   end
 
