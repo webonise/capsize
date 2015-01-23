@@ -71,9 +71,9 @@ module Webistrano
       require "webistrano/capsize_setup"
       capsize_setup(deployment.stage.name)
       require "capistrano/deploy"
-      # require 'capistrano/bundler'
-      # require 'capistrano/rvm'
-      # require 'capistrano/rails'
+      require 'capistrano/rvm'
+      require 'capistrano/bundler'
+      # require 'capistrano/rails/migrations'
       status = catch(:abort_called_by_capistrano){
         Dir.glob('capistrano/tasks/*.rake').each { |r| import r }
         Capistrano::Application.invoke("#{deployment.stage.name}")
@@ -91,38 +91,38 @@ module Webistrano
     end
 
     # modified version of Capistrano::CLI::Execute's execute!
-    def execute!
-      config = instantiate_configuration
-      config.logger.level = options[:verbose]
-      config.load 'deploy'
-
-      status = catch(:abort_called_by_capistrano){
-        set_webistrano_logger(config)
-
-        set_up_config(config)
-
-        # git and mercurial cannot do a local query by default
-        unless %w(git mercurial).include? config.fetch(:scm).to_s
-          exchange_real_revision(config)
-        end
-
-        save_revision(config)
-        save_pid
-
-        config.trigger(:load)
-        execute_requested_actions(config)
-        config.trigger(:exit)
-      }
-
-      if status == :capistrano_abort
-        false
-      else
-        config
-      end
-    rescue Exception => error
-      handle_error(error)
-      return false
-    end
+    # def execute!
+    #   config = instantiate_configuration
+    #   config.logger.level = options[:verbose]
+    #   config.load 'deploy'
+    #
+    #   status = catch(:abort_called_by_capistrano){
+    #     set_webistrano_logger(config)
+    #
+    #     set_up_config(config)
+    #
+    #     # git and mercurial cannot do a local query by default
+    #     unless %w(git mercurial).include? config.fetch(:scm).to_s
+    #       exchange_real_revision(config)
+    #     end
+    #
+    #     save_revision(config)
+    #     save_pid
+    #
+    #     config.trigger(:load)
+    #     execute_requested_actions(config)
+    #     config.trigger(:exit)
+    #   }
+    #
+    #   if status == :capistrano_abort
+    #     false
+    #   else
+    #     config
+    #   end
+    # rescue Exception => error
+    #   handle_error(error)
+    #   return false
+    # end
 
     # save the revision in the DB if possible
     def save_revision(config)
@@ -327,12 +327,7 @@ module Webistrano
 
     # returns a list of all tasks defined for this deployer
     def list_tasks
-      config = instantiate_configuration
-      config.load 'deploy'
-
-      set_up_config(config)
-
-      config.task_list(:all)
+      %w(deploy:rollback deploy:cleanup)
     end
 
     def find_or_create_project_dir(project)
