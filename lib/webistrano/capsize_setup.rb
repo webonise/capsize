@@ -12,11 +12,15 @@ def capsize_setup(stage)
     set(:stage, stage.to_sym)
 
     invoke 'load:defaults'
-    load "./capsize_projects/test_capistrano3/deploy.rb"
-    load "./capsize_projects/test_capistrano3/#{stage}.rb"
+    load rooted("capsize_projects/test_capistrano3/deploy.rb")
+    load rooted("capsize_projects/test_capistrano3/#{stage}.rb")
     load "capistrano/#{fetch(:scm)}.rb"
     I18n.locale = fetch(:locale, :en)
     configure_backend
   end
   require 'capistrano/dotfile'
+end
+
+def rooted(dir)
+  Rails.root.join(dir)
 end
