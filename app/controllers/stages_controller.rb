@@ -16,7 +16,7 @@ class StagesController < ApplicationController
   # GET /projects/1/stages/1.xml
   def show
     @stage = current_project.stages.find(params[:id])
-    @task_list = [['All tasks: ', '']] + @stage.list_tasks.collect{|task| [task[:name], task[:name]]}.sort()
+    @task_list = [['All tasks: ', '']] + @stage.list_tasks.sort()
     @can_edit_project = current_user.can_edit?(@project)
 
     respond_to do |format|
