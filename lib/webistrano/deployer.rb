@@ -333,12 +333,12 @@ module Webistrano
     end
 
     def find_or_create_project_dir(project)
-      FileUtils.mkdir_p('capsize_projects') unless Dir.exists?('capsize_projects')
-      FileUtils.mkdir_p("capsize_projects/#{project}") unless Dir.exists?("/capsize_projects/#{project}")
+      FileUtils.mkdir_p(rooted('capsize_projects')) unless Dir.exists?(rooted('capsize_projects'))
+      FileUtils.mkdir_p(rooted("capsize_projects/#{project}")) unless Dir.exists?(rooted("/capsize_projects/#{project}"))
     end
 
     def write_deploy(config)
-      File.open("capsize_projects/#{config.fetch(:webistrano_project)}/deploy.rb", 'w+') do |f|
+      File.open(rooted("capsize_projects/#{config.fetch(:webistrano_project)}/deploy.rb"), 'w+') do |f|
         # f.puts "require 'capistrano/all'"
         f.puts "stages = '#{deployment.stage.name}'"
         deployment.stage.project.configuration_parameters.each do |parameter|
@@ -353,7 +353,7 @@ module Webistrano
     end
 
     def write_stage(stage)
-      File.open("capsize_projects/#{stage.project.webistrano_project_name}/#{stage.name}.rb", 'w+') do |f|
+      File.open(rooted("capsize_projects/#{stage.project.webistrano_project_name}/#{stage.name}.rb"), 'w+') do |f|
         stage.roles.each do |role|
           f.puts "role :#{role.name}, %w{#{find_host_user(stage.project)}@#{role.host.name}}"
         end
@@ -362,6 +362,10 @@ module Webistrano
 
     def find_host_user(project)
       project.configuration_parameters.find_by_name('user').value
+    end
+
+    def rooted(dir)
+      Rails.root.join(dir)
     end
   end
 end
