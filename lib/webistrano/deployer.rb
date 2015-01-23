@@ -71,10 +71,13 @@ module Webistrano
       require "webistrano/capsize_setup"
       capsize_setup(deployment.stage.name)
       require "capistrano/deploy"
+      # require 'capistrano/bundler'
+      # require 'capistrano/rvm'
+      # require 'capistrano/rails'
       status = catch(:abort_called_by_capistrano){
         Dir.glob('capistrano/tasks/*.rake').each { |r| import r }
         Capistrano::Application.invoke("#{deployment.stage.name}")
-        Capistrano::Application.invoke('deploy')
+        Capistrano::Application.invoke(options[:actions])
       }
 
       if status == :capistrano_abort
