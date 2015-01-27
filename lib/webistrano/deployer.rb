@@ -294,7 +294,7 @@ module Webistrano
 
     # returns a list of all tasks defined for this deployer
     def list_tasks
-      %w(deploy:rollback deploy:cleanup)
+      [{:name => "deploy:rollback", :description => nil}, {:name => "deploy:cleanup", :description => nil}]
     end
 
     def find_or_create_project_dir(project)
