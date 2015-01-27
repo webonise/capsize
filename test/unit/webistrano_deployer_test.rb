@@ -275,16 +275,18 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
   def test_task_invokation_successful
     prepare_config_mocks
 
-    @deployment = create_new_deployment(:stage => @stage, :task => 'deploy:update')
+    @deployment = create_new_deployment(:stage => @stage, :task => 'deploy:rollback')
 
     deployer = Webistrano::Deployer.new(@deployment)
     deployer.invoke_task!
 
     assert_equal @stage, @deployment.stage
     assert_equal [@role.id], @deployment.roles.collect(&:id)
-    assert_equal 'deploy:update', @deployment.task
+    assert_equal 'deploy:rollback', @deployment.task
     assert @deployment.completed?
     assert @deployment.success?
+
+    remove_directory(@deployment.stage.project.webistrano_project_name)
   end
 
   def test_task_invokation_not_successful
@@ -328,6 +330,7 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
 
     # check error message
     assert_match(/sorry - no capistrano today/, @deployment.log)
+    remove_directory(@deployment.stage.project.webistrano_project_name)
   end
 
   def test_db_logging
@@ -359,6 +362,7 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     # the log in the DB should not be empty
     @deployment.reload
     assert_equal "  * executing `deploy:update'\n", @deployment.log
+    remove_directory(@deployment.stage.project.webistrano_project_name)
   end
 
   def test_db_logging_if_task_vars_incomplete
@@ -376,6 +380,7 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     # the log in the DB should not be empty
     @deployment.reload
     assert_match(/Please specify the repo_url that houses your application's code, set :repo_url, 'foo'/, @deployment.log) # ' fix highlighting
+    remove_directory(@deployment.stage.project.webistrano_project_name)
   end
 
   def test_handling_of_scm_error
@@ -395,10 +400,10 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     deployment = create_new_deployment(:stage => stage, :task => 'deploy:default')
     deployer = Webistrano::Deployer.new(deployment)
     deployer.invoke_task!
-    remove_directory(stage.project)
 
     deployment.reload
     assert_match(/Local scm command failed/, deployment.log)
+    remove_directory(deployment.stage.project.webistrano_project_name)
   end
 
   def test_handling_of_open_scm_command_error
@@ -416,10 +421,10 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     deployment = create_new_deployment(:stage => stage, :task => 'deploy:default')
     deployer = Webistrano::Deployer.new(deployment)
     deployer.invoke_task!
-    remove_directory(stage.project)
 
     deployment.reload
     assert_match(/Local scm command not found/, deployment.log)
+    remove_directory(deployment.stage.project.webistrano_project_name)
   end
 
   def test_handling_of_prompt_configuration
@@ -436,7 +441,7 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
 
     deployer = Webistrano::Deployer.new(deployment)
     deployer.invoke_task!
-    remove_directory(stage_with_prompt.project)
+    remove_directory(stage_with_prompt.project.webistrano_project_name)
   end
 
   def test_loading_of_template_tasks
@@ -478,6 +483,7 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
 
     deployer = Webistrano::Deployer.new(@deployment)
     deployer.invoke_task!
+    remove_directory(@deployment.stage.project.webistrano_project_name)
   end
 
   def test_custom_recipes
@@ -526,6 +532,7 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
 
     deployer = Webistrano::Deployer.new(@deployment)
     deployer.invoke_task!
+    remove_directory(@deployment.stage.project.webistrano_project_name)
   end
 
   def test_load_order_of_recipes
@@ -571,6 +578,8 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
 
     deployer = Webistrano::Deployer.new(@deployment)
     deployer.invoke_task!
+    remove_directory(@deployment.stage.project.webistrano_project_name)
+
   end
 
   def test_handling_of_exceptions_during_command_execution
@@ -604,6 +613,8 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
 
     deployer = Webistrano::Deployer.new(@deployment)
     deployer.invoke_task!
+    remove_directory(@deployment.stage.project.webistrano_project_name)
+
 
     @deployment.reload
     assert_match(/RuntimeError/, @deployment.log)
@@ -647,6 +658,8 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     # run
     deployer = Webistrano::Deployer.new(@deployment)
     deployer.invoke_task!
+    remove_directory(@deployment.stage.project.webistrano_project_name)
+
 
     # check that the correct project/stage name was set
     assert_equal "my_sample_project", $vars_set[:webistrano_project]
@@ -665,6 +678,8 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
 
     deployer = Webistrano::Deployer.new(@deployment)
     deployer.invoke_task!
+    remove_directory(@deployment.stage.project.webistrano_project_name)
+
 
     assert_equal "Sir: a nice value here, please!", $vars_set[:using_foo]
     assert_equal "12 a nice value here, please!", $vars_set[:using_foo_and_bar]
@@ -680,6 +695,8 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
 
     deployer = Webistrano::Deployer.new(@deployment)
     deployer.invoke_task!
+    remove_directory(@deployment.stage.project.webistrano_project_name)
+
 
     assert_equal '#{Kernel.exit}', $vars_set[:foo]
   end
@@ -704,6 +721,7 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     # run
     deployer = Webistrano::Deployer.new(deployment)
     deployer.invoke_task!
+    remove_directory(deployment.stage.project.webistrano_project_name)
 
     assert_equal "a nice value here, please! 1234", $vars_set[:using_foo]
   end
@@ -721,8 +739,8 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
 
   def test_ssh_options
     c = @project.configuration_parameters.build(
-      :name => 'ssh_port',
-      :value => '44'
+    :name => 'ssh_port',
+    :value => '44'
     )
     c.save!
 
@@ -732,6 +750,8 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     deployer.expects(:execute_requested_actions).returns(nil)
     deployer.stubs(:save_revision)
     deployer.invoke_task!
+    remove_directory(@deployment.project.webistrano_project_name)
+
   end
 
   def test_list_tasks
@@ -746,11 +766,11 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
 
     # add a stage recipe
     recipe_body = <<-EOS
-      namespace :foo do
-        task :bar do
-          run 'foobar'
-        end
+    namespace :foo do
+      task :bar do
+        run 'foobar'
       end
+    end
     EOS
     recipe = create_new_recipe(:name => 'A new recipe', :body => recipe_body)
     @stage.recipes << recipe
@@ -759,6 +779,39 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     assert_equal 24, @stage.list_tasks.size # filter shell and invoke
     assert_equal 1, deployer.list_tasks.delete_if{|t| t.fully_qualified_name != 'foo:bar'}.size
     assert_equal 1, @stage.list_tasks.delete_if{|t| t[:name] != 'foo:bar'}.size
+  end
+
+  def test_project_directory_is_created
+    deployer = Webistrano::Deployer.new(@deployment)
+
+    home_exists = Dir.exists?(rooted("capsize_projects"))
+    assert !Dir.exists?(rooted("capsize_projects/sample_project"))
+    deployer.find_or_create_project_dir("sample_project")
+    assert Dir.exists?(rooted("capsize_projects")) unless home_exists
+    assert Dir.exists?(rooted("capsize_projects/sample_project"))
+
+    assert !Dir.exists?(rooted("capsize_projects/#{@deployment.stage.project.webistrano_project_name}"))
+    deployer.invoke_task!
+    assert Dir.exists?(rooted("capsize_projects/#{@deployment.stage.project.webistrano_project_name}"))
+
+    remove_directory("sample_project")
+    remove_directory(@deployment.stage.project.webistrano_project_name)
+  end
+
+  def test_deploy_file_is_written
+    assert !File.exist?(rooted("capsize_projects/#{@deployment.stage.project.webistrano_project_name}/deploy.rb"))
+    deployer = Webistrano::Deployer.new(@deployment)
+    deployer.invoke_task!
+    assert File.exist?(rooted("capsize_projects/#{@deployment.stage.project.webistrano_project_name}/deploy.rb"))
+    remove_directory(@deployment.stage.project.webistrano_project_name)
+  end
+
+  def test_stage_file_is_written
+    assert !File.exist?(rooted("capsize_projects/#{@deployment.stage.project.webistrano_project_name}/#{@deployment.stage.name}.rb"))
+    deployer = Webistrano::Deployer.new(@deployment)
+    deployer.invoke_task!
+    assert File.exist?(rooted("capsize_projects/#{@deployment.stage.project.webistrano_project_name}/#{@deployment.stage.name}.rb"))
+    remove_directory(@deployment.stage.project.webistrano_project_name)
   end
 
 
@@ -835,10 +888,11 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     # get things started
     deployer = Webistrano::Deployer.new(@deployment)
     deployer.invoke_task!
+    remove_directory(@deploymen.stage.project.webistrano_project_name)
   end
 
   def remove_directory(project)
-    FileUtils.rm_rf(rooted("/capsize_projects/#{project.webistrano_project_name}"))
+    FileUtils.rm_rf(rooted("capsize_projects/#{project}"))
   end
 
   def rooted(dir)
