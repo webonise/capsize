@@ -66,7 +66,7 @@ module Capsize
       write_stage(deployment.stage)
 
       require "capsize/capsize_setup"
-      capsize_setup(deployment.stage.name)
+      capsize_setup(deployment.stage)
       require "capistrano/deploy"
       require 'capistrano/rvm'
       require 'capistrano/bundler'
