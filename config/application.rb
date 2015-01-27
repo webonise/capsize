@@ -80,7 +80,7 @@ module Www
 end
 
 require 'open4'
-require 'capistrano/cli'
+# require 'capistrano/cli'
 require 'syntax/convertors/html'
 
 # from environment.rb needed?

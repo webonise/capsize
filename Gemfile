@@ -13,9 +13,12 @@ gem 'net-sftp', :require => 'net/sftp'
 gem 'net-ldap', :require => 'net/ldap'
 gem 'net-ssh-gateway', :require => 'net/ssh/gateway'
 gem 'capistrano'
+gem 'capistrano-rails'
+gem 'capistrano-rvm'
 gem 'highline'
 gem 'open4'
 gem 'syntax'
+gem 'sshkit'
 
 # could not make it work
 #gem 'exception_notification', :require => 'exception_notifier'
