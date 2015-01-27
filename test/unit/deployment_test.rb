@@ -153,7 +153,6 @@ class DeploymentTest < ActiveSupport::TestCase
     deployment.task = 'deploy'
     deployment.description = 'bugfix'
     deployment.user = create_new_user
-    deployment.roles << @stage.roles
 
     assert !deployment.valid?
     assert_not_nil deployment.errors.on('base')
@@ -251,7 +250,7 @@ class DeploymentTest < ActiveSupport::TestCase
                   :stage => stage,
                   :excluded_host_ids => [host_1.id])
 
-    assert_equal 3, deployment.roles.count
+    assert_equal 6, deployment.roles.count
     assert_equal [host_1], deployment.excluded_hosts
 
     assert_equal [host_2], deployment.deploy_to_hosts
@@ -386,7 +385,6 @@ class DeploymentTest < ActiveSupport::TestCase
     deployment.task = 'deploy'
     deployment.description = 'bugfix'
     deployment.user = create_new_user
-    deployment.roles << stage.roles
     deployment.prompt_config = {'promptme' => '098'}
 
     assert_not_nil deployment.effective_and_prompt_config

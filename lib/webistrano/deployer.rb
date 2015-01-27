@@ -116,9 +116,6 @@ module Webistrano
     end
 
     def set_up_config(config)
-      # set_pre_vars(config)
-      # load_recipes(config)
-
       set_project_and_stage_names(config)
       set_stage_configuration(config)
       set_stage_roles(config)
@@ -178,47 +175,6 @@ module Webistrano
       rescue SyntaxError, LoadError => e
         raise Capistrano::Error, "Problem loading custom recipe: #{e.message}"
       end
-    end
-
-    # set :real_revsion on config a version of SCM#query_revision(revision)
-    # that uses Webistrano::Logger and handles errors cleaner
-    def exchange_real_revision(config)
-
-      # check if the scm_command exists if it is set
-      if config[:scm_command] && !File.file?(config[:source].local.command)
-        logger.important("Local scm command not found: #{config[:source].local.command}")
-        throw :abort_called_by_capistrano, :capistrano_abort
-      end
-
-      config.set(:real_revision) do
-        config[:source].local.query_revision(config[:revision]) do |cmd|
-          config.with_env("LC_ALL", "C") do
-
-            stdout_output = ''
-            stderr_output = ''
-
-            status = Open4::popen4(cmd) do |pid, stdin, stdout, stderr|
-              stdin.close
-              stdout_output = stdout.read.strip
-              stderr_output = stderr.read.strip
-              #logger.trace("LOCAL SCM OUT: #{stdout_output}") unless stdout_output.blank?
-              logger.important("LOCAL SCM ERROR: #{stderr_output}") unless stderr_output.blank?
-            end
-
-            if status.exitstatus != 0 # Error
-              logger.important("Local scm command failed")
-
-              # exit deployment in a hard way as no rollback is need (we never read the revision to deploy)
-              # an alternative would be to raise Capistrano::Error, this would trigger a rollback
-              throw :abort_called_by_capistrano, :capistrano_abort
-            else # OK
-              stdout_output
-            end
-
-          end
-        end
-      end
-
     end
 
     # sets the roles on the Capistrano configuration

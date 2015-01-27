@@ -14,6 +14,10 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     @deployment = create_new_deployment(:stage => @stage, :task => 'master:do')
   end
 
+  teardown do 
+    remove_directory(@stage.project)
+  end
+
   def test_initialization
     # no deployment
     assert_raise(ArgumentError){
@@ -443,6 +447,7 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     deployment = create_new_deployment(:stage => stage, :task => 'deploy:default')
     deployer = Webistrano::Deployer.new(deployment)
     deployer.invoke_task!
+    remove_directory(stage.project)
 
     deployment.reload
     assert_match(/Local scm command failed/, deployment.log)
@@ -463,6 +468,7 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     deployment = create_new_deployment(:stage => stage, :task => 'deploy:default')
     deployer = Webistrano::Deployer.new(deployment)
     deployer.invoke_task!
+    remove_directory(stage.project)
 
     deployment.reload
     assert_match(/Local scm command not found/, deployment.log)
@@ -482,6 +488,7 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
 
     deployer = Webistrano::Deployer.new(deployment)
     deployer.invoke_task!
+    remove_directory(stage_with_prompt.project)
   end
 
   def test_loading_of_template_tasks
@@ -956,6 +963,14 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     # get things started
     deployer = Webistrano::Deployer.new(@deployment)
     deployer.invoke_task!
+  end
+
+  def remove_directory(project)
+    FileUtils.rm_rf(rooted("/capsize_projects/#{project.webistrano_project_name}"))
+  end
+
+  def rooted(dir)
+    Rails.root.join(dir)
   end
 
 end
