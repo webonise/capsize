@@ -785,33 +785,31 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
   def test_project_directory_is_created
     deployer = Capsize::Deployer.new(@deployment)
 
-    home_exists = Dir.exists?(rooted("capsize_projects"))
-    assert !Dir.exists?(rooted("capsize_projects/sample_project"))
+    assert !Dir.exists?(rooted("sample_project"))
     deployer.find_or_create_project_dir("sample_project")
-    assert Dir.exists?(rooted("capsize_projects")) unless home_exists
-    assert Dir.exists?(rooted("capsize_projects/sample_project"))
+    assert Dir.exists?(rooted("sample_project"))
 
-    assert !Dir.exists?(rooted("capsize_projects/#{@deployment.stage.project.capsize_project_name}"))
+    assert !Dir.exists?(rooted("#{@deployment.stage.project.capsize_project_name}"))
     deployer.invoke_task!
-    assert Dir.exists?(rooted("capsize_projects/#{@deployment.stage.project.capsize_project_name}"))
+    assert Dir.exists?(rooted("#{@deployment.stage.project.capsize_project_name}"))
 
     remove_directory("sample_project")
     remove_directory(@deployment.stage.project.capsize_project_name)
   end
 
   def test_deploy_file_is_written
-    assert !File.exist?(rooted("capsize_projects/#{@deployment.stage.project.capsize_project_name}/deploy.rb"))
+    assert !File.exist?(rooted("#{@deployment.stage.project.capsize_project_name}/deploy.rb"))
     deployer = Capsize::Deployer.new(@deployment)
     deployer.invoke_task!
-    assert File.exist?(rooted("capsize_projects/#{@deployment.stage.project.capsize_project_name}/deploy.rb"))
+    assert File.exist?(rooted("#{@deployment.stage.project.capsize_project_name}/deploy.rb"))
     remove_directory(@deployment.stage.project.capsize_project_name)
   end
 
   def test_stage_file_is_written
-    assert !File.exist?(rooted("capsize_projects/#{@deployment.stage.project.capsize_project_name}/#{@deployment.stage.name}.rb"))
+    assert !File.exist?(rooted("#{@deployment.stage.project.capsize_project_name}/#{@deployment.stage.name}.rb"))
     deployer = Capsize::Deployer.new(@deployment)
     deployer.invoke_task!
-    assert File.exist?(rooted("capsize_projects/#{@deployment.stage.project.capsize_project_name}/#{@deployment.stage.name}.rb"))
+    assert File.exist?(rooted("#{@deployment.stage.project.capsize_project_name}/#{@deployment.stage.name}.rb"))
     remove_directory(@deployment.stage.project.capsize_project_name)
   end
 
@@ -893,7 +891,7 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
   end
 
   def remove_directory(project)
-    FileUtils.rm_rf(rooted("capsize_projects/#{project}"))
+    FileUtils.rm_rf(rooted("#{project}"))
   end
 
 end
