@@ -14,7 +14,7 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     @deployment = create_new_deployment(:stage => @stage, :task => 'master:do')
   end
 
-  teardown do 
+  teardown do
     remove_directory(@stage.project)
   end
 
@@ -378,58 +378,6 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     assert_match(/Please specify the repo_url that houses your application's code, set :repo_url, 'foo'/, @deployment.log) # ' fix highlighting
   end
 
-  def test_config_logger_and_real_revision_are_set
-    # prepare the stage by creating a nearly blank config
-    @project.configuration_parameters.delete_all
-    @stage.configuration_parameters.delete_all
-
-    conf = @stage.configuration_parameters.build(:name => 'application', :value => 'test')
-    conf.save!
-    conf = @stage.configuration_parameters.build(:name => 'repo_url', :value => 'file:///tmp/')
-    conf.save!
-
-    @deployment = create_new_deployment(:stage => @stage, :task => 'deploy:default')
-    # prepare Mocks
-    #
-
-    # Logger stubing
-    mock_cap_logger = mock()
-    mock_cap_logger.expects(:level=).with(3)
-
-    # config stubbing
-    mock_cap_config = mock()
-    mock_cap_config.stubs(:logger).returns(mock_cap_logger)
-    mock_cap_config.stubs(:logger=)
-    mock_cap_config.stubs(:load)
-    mock_cap_config.stubs(:trigger)
-    mock_cap_config.stubs(:find_and_execute_task)
-    mock_cap_config.stubs(:[])
-    mock_cap_config.stubs(:fetch).with(:scm)
-
-    # roles
-    mock_cap_config.stubs(:role)
-
-    #
-    # now the interesting part
-    # check that the logger and real_revision were set
-    #
-    # vars
-    mock_cap_config.expects(:set).with{|x,y|
-      if x == :logger
-        (y.is_a? Webistrano::Logger)
-      else
-        [:password, :application, :repo_url, :real_revision, :webistrano_stage, :webistrano_project].include?(x)
-      end
-    }.times(7)
-
-    # main mock install
-    Webistrano::Configuration.expects(:new).returns(mock_cap_config)
-
-    # get things started
-    deployer = Webistrano::Deployer.new(@deployment)
-    deployer.invoke_task!
-  end
-
   def test_handling_of_scm_error
     # prepare
     project = create_new_project(:template => 'rails')
@@ -722,17 +670,6 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     assert_equal "12 a nice value here, please!", $vars_set[:using_foo_and_bar]
   end
 
-  def test_reference_of_capistrano_build_ins
-    @project.configuration_parameters.create!(:name => 'foo', :value => 'where is #{release_path} ?')
-
-    deployer = Webistrano::Deployer.new(@deployment)
-    deployer.expects(:exchange_real_revision).with do |conf|
-      conf.fetch(:foo).match("where is /path/to/deployment_base/releases/#{Time.now.year}")
-    end
-    deployer.expects(:save_revision).raises('foo')
-    deployer.invoke_task!
-  end
-
   def test_reference_of_random_methods
     Kernel.expects(:exit).never
     @project.configuration_parameters.create!(:name => 'foo', :value => '#{Kernel.exit}')
@@ -797,39 +734,6 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     deployer.invoke_task!
   end
 
-  def test_exchange_revision_with_git
-    config = @stage.configuration_parameters.build(:name => 'scm', :value => 'git')
-    config.save!
-
-
-    deployer = Webistrano::Deployer.new(@deployment)
-
-    # check that exchange_real_revision is NOT called with git
-    deployer.expects(:exchange_real_revision).times(0)
-
-    # mock the main exec
-    deployer.expects(:execute_requested_actions).returns(nil)
-    deployer.stubs(:save_revision)
-
-    deployer.invoke_task!
-  end
-
-  def test_exchange_revision_without_git
-    config = @stage.configuration_parameters.build(:name => 'scm', :value => 'svn')
-    config.save!
-
-
-    deployer = Webistrano::Deployer.new(@deployment)
-
-    # check that exchange_real_revision is called without git
-    deployer.expects(:exchange_real_revision).times(1)
-
-    # mock the main exec
-    deployer.expects(:execute_requested_actions).returns(nil)
-
-    deployer.invoke_task!
-  end
-
   def test_list_tasks
     d = Deployment.new
     d.stage = @stage
@@ -855,38 +759,6 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     assert_equal 24, @stage.list_tasks.size # filter shell and invoke
     assert_equal 1, deployer.list_tasks.delete_if{|t| t.fully_qualified_name != 'foo:bar'}.size
     assert_equal 1, @stage.list_tasks.delete_if{|t| t[:name] != 'foo:bar'}.size
-  end
-
-  def test_deployer_sets_revision
-    config = prepare_config_mocks
-
-    deployer = Webistrano::Deployer.new(@deployment)
-
-    deployer.expects(:exchange_real_revision).returns('4943').times(1)
-    config.expects(:fetch).with(:real_revision).returns('4943').times(2)
-
-    # mock the main exec
-    deployer.expects(:execute_requested_actions).returns(nil)
-
-    deployer.invoke_task!
-
-    assert_equal "4943", deployer.deployment.reload.revision
-  end
-
-  def test_deployer_sets_pid
-    config = prepare_config_mocks
-
-    deployer = Webistrano::Deployer.new(@deployment)
-
-    deployer.stubs(:exchange_real_revision)
-    config.stubs(:save_revision)
-
-    # mock the main exec
-    deployer.expects(:execute_requested_actions).returns(nil)
-
-    deployer.invoke_task!
-
-    assert_equal $$, deployer.deployment.reload.pid
   end
 
 
