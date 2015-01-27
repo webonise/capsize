@@ -97,7 +97,7 @@ class Stage < ActiveRecord::Base
   end
 
   def needed_vars_set?
-    needed_vars = [:application]
+    needed_vars = [:repo_url, :application]
     needed_vars.each do |key|
       if self.effective_configuration(key).blank?
         self.add_deployment_problem(key, "the configuration parameter '#{key.to_s}' needs to be set.")
