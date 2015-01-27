@@ -48,7 +48,7 @@ class Project < ActiveRecord::Base
   end
   
   # returns a better form of the project name for use inside Capistrano recipes
-  def webistrano_project_name
+  def capsize_project_name
     self.name.underscore.gsub(/[^a-zA-Z0-9\-\_]/, '_')
   end
   

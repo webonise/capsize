@@ -3,7 +3,7 @@ Install and server through passenger with apache
 - enable libapache2-mod-passenger (aptitude install libapache2-mod-passenger)
 - enable rewrite (a2enmod rewrite)
 
-/etc/apache2/sites-available/webistrano
+/etc/apache2/sites-available/capsize
 <VirtualHost *:80>
     ServerName server.example.com
     DocumentRoot /path/to/rails/app/public
@@ -21,6 +21,6 @@ Install and server through passenger with apache
     RailsEnv development
 </VirtualHost>
 
-- enable site (a2ensite webistrano)
+- enable site (a2ensite capsize)
 - restart apache (/etc/init.d apache2 restart)
 

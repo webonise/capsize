@@ -8,7 +8,7 @@ namespace :test do
   end
 
   Rake::TestTask.new(:deployer) do |t|
-    t.pattern = 'test/unit/webistrano_deployer_test.rb'
+    t.pattern = 'test/unit/capsize_deployer_test.rb'
     t.ruby_opts <<  '-rubygems'
     t.verbose = true
   end

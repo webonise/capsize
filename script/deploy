@@ -33,8 +33,8 @@ options.username    = 'admin'
 options.task        = 'deploy'
 options.description = 'Automated deployment from the command line.'
 
-webistrano_project = nil
-webistrano_stage   = nil
+capsize_project = nil
+capsize_stage   = nil
 
 ################################################################################
 OptionParser.new do |optparser|
@@ -45,11 +45,11 @@ OptionParser.new do |optparser|
     exit
   end
 
-  optparser.on('-e', '--environment=ENV', "RAILS_ENV for Webistrano (default: #{options.environment})") do |env|
+  optparser.on('-e', '--environment=ENV', "RAILS_ENV for Capsize (default: #{options.environment})") do |env|
     options.environment = env
   end
   
-  optparser.on('-u', '--username=NAME', "Webistrano username to use (default: #{options.username})") do |user|
+  optparser.on('-u', '--username=NAME', "Capsize username to use (default: #{options.username})") do |user|
     options.username = user
   end
 
@@ -57,27 +57,27 @@ OptionParser.new do |optparser|
     options.task = task
   end
   
-  optparser.on('-d', '--description=TEXT', "Deployment comment for Webistrano records") do |cmt|
+  optparser.on('-d', '--description=TEXT', "Deployment comment for Capsize records") do |cmt|
     options.description = cmt
   end
   
-  webistrano_project, webistrano_stage = optparser.permute!(ARGV)
+  capsize_project, capsize_stage = optparser.permute!(ARGV)
   
-  if webistrano_project.nil? or webistrano_stage.nil?
+  if capsize_project.nil? or capsize_stage.nil?
     puts optparser
     exit(1)
   end
 end
 
 ################################################################################
-# now it's time to make the connection to Webistrano
+# now it's time to make the connection to Capsize
 require  File.expand_path(File.dirname(__FILE__) + '/..') + '/config/environment'
 
 ################################################################################
 begin
   user    = User.find_by_login(options.username) or raise "no such user: #{options.username}"
-  project = Project.active.find_by_name(webistrano_project) or raise "no such project: #{webistrano_project}"
-  stage   = project.stages.find_by_name(webistrano_stage) or raise "no such stage: #{webistrano_stage}"
+  project = Project.active.find_by_name(capsize_project) or raise "no such project: #{capsize_project}"
+  stage   = project.stages.find_by_name(capsize_stage) or raise "no such stage: #{capsize_stage}"
   
   unless stage.prompt_configurations.empty?
     raise "this stage requires prompted configuration, which is not yet implemented in deploy"
@@ -87,7 +87,7 @@ begin
   deployment.user = user
   deployment.save or raise "failed to create deployment record: #{deployment.errors.full_messages}"
 
-  deployer = Webistrano::Deployer.new(deployment)
+  deployer = Capsize::Deployer.new(deployment)
   deployer.invoke_task! or raise "deployment failed"
 
 rescue Exception => e

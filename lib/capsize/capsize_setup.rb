@@ -1,4 +1,5 @@
 include Capistrano::DSL
+include ApplicationHelper
 
 
 namespace :load do
@@ -19,8 +20,4 @@ def capsize_setup(stage)
     configure_backend
   end
   require 'capistrano/dotfile'
-end
-
-def rooted(dir)
-  Rails.root.join(dir)
 end

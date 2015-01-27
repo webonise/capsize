@@ -75,9 +75,9 @@ class StagesControllerTest < ActionController::TestCase
     assert_match 'set :mongrel_port, "99"', @response.body
     assert_match 'set :bool_conf, true', @response.body
 
-    # check default webistrano vars
-    assert_match "set :webistrano_project, \"schumaker_levi\"", @response.body
-    assert_match "set :webistrano_stage, \"123_name\"", @response.body
+    # check default capsize vars
+    assert_match "set :capsize_project, \"schumaker_levi\"", @response.body
+    assert_match "set :capsize_stage, \"123_name\"", @response.body
 
     # check roles
     assert_match "role :web, \"#{web_role.hostname_and_port}\"", @response.body

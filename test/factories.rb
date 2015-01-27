@@ -56,24 +56,6 @@ module Factories
     return s
   end
 
-  # def create_new_role(options = {})
-  #   options = {
-  #     :stage => create_new_stage,
-  #     :host => create_new_host,
-  #     :name => random_string,
-  #     :primary => 0
-  #   }.update(options)
-  #
-  #   r = Role.new
-  #   r.name = options[:name]
-  #   r.stage = options[:stage]
-  #   r.host = options[:host]
-  #   r.primary = options[:primary]
-  #   r.save!
-  #
-  #   return r
-  # end
-
   def create_new_project_configuration(options = {})
     options = {
       :project => create_new_project,

@@ -166,9 +166,9 @@ class StageTest < ActiveSupport::TestCase
     assert_equal 2, stage.recent_deployments(2).size
   end
 
-  def test_webistrano_stage_name
+  def test_capsize_stage_name
     stage = create_new_stage(:name => '&my_ Pro ject')
-    assert_equal '_my__pro_ject', stage.webistrano_stage_name
+    assert_equal '_my__pro_ject', stage.capsize_stage_name
   end
 
   def test_handle_corrupt_recipes

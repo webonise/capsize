@@ -11,7 +11,7 @@ class NotificationTest < ActiveSupport::TestCase
   end
 
   def test_sender_address
-    Notification.webistrano_sender_address = "FooBar"
+    Notification.capsize_sender_address = "FooBar"
 
     stage = create_new_stage
     role = create_new_role(:stage => stage, :name => 'app')

@@ -26,7 +26,7 @@ Install all gem dependencies via the gem bundler:
 
 ### 3. Configuration
 
-Copy `config/webistrano_config.rb.sample` to `config/webistrano_config.rb` and edit appropriatly.  
+Copy `config/capsize_config.rb.sample` to `config/capsize_config.rb` and edit appropriatly.  
 In this configuration file you can set the mail settings of Capsize.
 
 Generate a file (`config/initializers/session_store.rb`) with a random secret used to secure session data :
@@ -51,7 +51,7 @@ Then create the database structure with Rake:
 > bundle exec thin -e production start
 ```
 
-Webistrano is then available at http://host:3000/
+Capsize is then available at http://host:3000/
 
 The default user is `admin`, the password is `admin`.  
 Please change the password after the first login.
@@ -71,7 +71,7 @@ Webonise Lab
 Original Author
 ------
 
-Jonathan Weiss, formerly of Peritor, was kind enough to author the parent of Capsize, Webistrano.  We are delighted to be able to maintain and modernize this tool at Webonise.
+Jonathan Weiss, formerly of Peritor, was kind enough to author the parent of Capsize, Capsize.  We are delighted to be able to maintain and modernize this tool at Webonise.
 
 Contributor
 -----------

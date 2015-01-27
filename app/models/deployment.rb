@@ -124,12 +124,12 @@ class Deployment < ActiveRecord::Base
     notify_per_mail
   end
 
-  # deploy through Webistrano::Deployer in background (== other process)
+  # deploy through Capsize::Deployer in background (== other process)
   # TODO - at the moment `Unix &` hack
   def deploy_in_background!
     unless Rails.env == 'test'
       Rails.logger.info "Calling other ruby process in the background in order to deploy deployment #{self.id} (stage #{self.stage.id}/#{self.stage.name})"
-      system("sh -c \"cd #{Rails.root.to_s} && ruby script/rails runner -e #{Rails.env} ' deployment = Deployment.find(#{self.id}); deployment.prompt_config = #{self.prompt_config.inspect.gsub('"', '\"')} ; Webistrano::Deployer.new(deployment).invoke_task! ' >> #{Rails.root.to_s}/log/#{Rails.env}.log 2>&1\" &")
+      system("sh -c \"cd #{Rails.root.to_s} && ruby script/rails runner -e #{Rails.env} ' deployment = Deployment.find(#{self.id}); deployment.prompt_config = #{self.prompt_config.inspect.gsub('"', '\"')} ; Capsize::Deployer.new(deployment).invoke_task! ' >> #{Rails.root.to_s}/log/#{Rails.env}.log 2>&1\" &")
     end
   end
 

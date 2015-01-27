@@ -124,7 +124,7 @@ class Stage < ActiveRecord::Base
   end
 
   # returns a better form of the stage name for use inside Capistrano recipes
-  def webistrano_stage_name
+  def capsize_stage_name
     self.name.underscore.gsub(/[^a-zA-Z0-9\-\_]/, '_')
   end
 
@@ -132,7 +132,7 @@ class Stage < ActiveRecord::Base
   def list_tasks
     d = Deployment.new
     d.stage = self
-    deployer = Webistrano::Deployer.new(d)
+    deployer = Capsize::Deployer.new(d)
     deployer.list_tasks
   end
 

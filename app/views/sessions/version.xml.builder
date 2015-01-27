@@ -1,5 +1,5 @@
 xml.instruct!
 xml.application do
   xml.version WEBISTRANO_VERSION
-  xml.name "Webistrano"
+  xml.name "Capsize"
 end

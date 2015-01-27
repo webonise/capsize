@@ -1,8 +1,8 @@
-# Webistranos implementation of Capistrano::Configuration
-# uses a Webistrano::Logger as the logger in order to log to the DB
+# Capsizes implementation of Capistrano::Configuration
+# uses a Capsize::Logger as the logger in order to log to the DB
 require 'capistrano/configuration'
 
-module Webistrano
+module Capsize
   class Configuration < Capistrano::Configuration
 
     attr_accessor :logger

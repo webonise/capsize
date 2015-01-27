@@ -1,4 +1,4 @@
-module Webistrano
+module Capsize
   module Template
     module Base
       CONFIG = {
@@ -27,7 +27,7 @@ module Webistrano
 
         # set Net::SSH ssh options through normal variables
         # at the moment only one SSH key is supported as arrays are not
-        # parsed correctly by Webistrano::Deployer.type_cast (they end up as strings)
+        # parsed correctly by Capsize::Deployer.type_cast (they end up as strings)
         [:ssh_port, :ssh_keys].each do |ssh_opt|
           if exists? ssh_opt
             logger.important("SSH options: setting #{ssh_opt} to: #{fetch(ssh_opt)}")
