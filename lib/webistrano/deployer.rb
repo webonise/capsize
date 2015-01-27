@@ -6,10 +6,6 @@ require 'capistrano/all'
 module Webistrano
   class Deployer
     # Mix-in the Capistrano behavior
-    # include Capistrano::CLI::Execute, Capistrano::CLI::Options
-    include Capistrano
-    include Capistrano::DSL::Paths
-
     # holds the capistrano options, see capistrano/lib/capistrano/cli/options.rb
     attr_accessor :options
 
@@ -63,7 +59,7 @@ module Webistrano
     def new_execute!
       config = instantiate_configuration
       config.logger.level = options[:verbose]
-      set_up_config(config)
+      set_project_and_stage_names(config)
       find_or_create_project_dir(config.fetch(:webistrano_project))
       write_deploy(config)
       write_stage(deployment.stage)
@@ -260,7 +256,6 @@ module Webistrano
 
     def write_deploy(config)
       File.open(rooted("capsize_projects/#{config.fetch(:webistrano_project)}/deploy.rb"), 'w+') do |f|
-        # f.puts "require 'capistrano/all'"
         f.puts "stages = '#{deployment.stage.name}'"
         deployment.stage.project.configuration_parameters.each do |parameter|
           f.puts "set :#{parameter.name}, '#{parameter.value}'"
