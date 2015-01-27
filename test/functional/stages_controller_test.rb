@@ -94,13 +94,13 @@ class StagesControllerTest < ActionController::TestCase
   def test_should_show_stage_tasks
     get :tasks, :id => @stage.id, :project_id => @project.id
     assert_response :success
-    assert_match /webistrano:mongrel:start/, @response.body
+    assert_match /deploy:rollback/, @response.body
   end
 
   def test_should_render_xml_for_stage_tasks
     get :tasks, :id => @stage.id, :project_id => @project.id, :format => "xml"
     assert_response :success
-    assert_match /webistrano:mongrel:start/, @response.body
+    assert_match /deploy:rollback/, @response.body
   end
 
   def test_index
