@@ -7,12 +7,12 @@ class ProjectConfiguration < ConfigurationParameter
   # default templates for Projects
   def self.templates
     {
-      'rails' => Webistrano::Template::Rails,
-      'mongrel_rails' => Webistrano::Template::MongrelRails,
-      'thin_rails' => Webistrano::Template::ThinRails,   
-      'mod_rails' => Webistrano::Template::ModRails,
-      'pure_file' => Webistrano::Template::PureFile,
-      'unicorn' => Webistrano::Template::Unicorn
+      'rails' => Capsize::Template::Rails,
+      'mongrel_rails' => Capsize::Template::MongrelRails,
+      'thin_rails' => Capsize::Template::ThinRails,   
+      'mod_rails' => Capsize::Template::ModRails,
+      'pure_file' => Capsize::Template::PureFile,
+      'unicorn' => Capsize::Template::Unicorn
     }
   end
   

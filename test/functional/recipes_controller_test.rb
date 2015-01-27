@@ -111,12 +111,12 @@ class RecipesControllerTest < ActionController::TestCase
     assert_redirected_to recipes_path
   end
 
-  # def test_should_preview_the_recipe
-  #   @user = admin_login
-  #
-  #   xhr :get, :preview, :recipe => {:body => @recipe.body}
-  #   assert_select_rjs :replace, "pre"
-  # end
+  def test_should_preview_the_recipe
+    @user = admin_login
+
+    xhr :get, :preview, :recipe => {:body => @recipe.body}
+    assert_select_rjs :replace, "pre"
+  end
 
   def test_show_with_version_should_show_the_specified_version
     @user = admin_login

@@ -29,7 +29,7 @@
   </p>
 
   <div id="local_user_fields">
-    <% unless WebistranoConfig[:authentication_method] == :cas -%>
+    <% unless CapsizeConfig[:authentication_method] == :cas -%>
     <p>
       <b>Password</b><br />
       <%= password_field 'user', 'password', :style =>'width:330px;' %>

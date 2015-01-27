@@ -1,16 +1,16 @@
 class Notification < ActionMailer::Base
   
-  @@webistrano_sender_address = 'Webistrano'
+  @@capsize_sender_address = 'Capsize'
   
-  def self.webistrano_sender_address=(val)
-    @@webistrano_sender_address = val
+  def self.capsize_sender_address=(val)
+    @@capsize_sender_address = val
   end
 
   def deployment(deployment, email)
     @subject    = "Deployment of #{deployment.stage.project.name}/#{deployment.stage.name} finished: #{deployment.status}"
     @body       = {:deployment => deployment}
     @recipients = email
-    @from       = @@webistrano_sender_address
+    @from       = @@capsize_sender_address
     @sent_on    = Time.now
     @headers    = {}
   end

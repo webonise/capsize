@@ -3,8 +3,9 @@ require 'fileutils'
 require 'capistrano/all'
 
 
-module Webistrano
+module Capsize
   class Deployer
+    include ApplicationHelper
     # Mix-in the Capistrano behavior
     # holds the capistrano options, see capistrano/lib/capistrano/cli/options.rb
     attr_accessor :options
@@ -27,12 +28,12 @@ module Webistrano
 
       if(@deployment.send(:task) && !@deployment.new_record?)
         # a read deployment
-        @logger = Webistrano::Logger.new(deployment)
-        @logger.level = Webistrano::Logger::TRACE
+        @logger = Capsize::Logger.new(deployment)
+        @logger.level = Capsize::Logger::TRACE
         validate
       else
         # a fake deployment in order to access tasks
-        @logger = Webistrano::Logger.new(deployment)
+        @logger = Capsize::Logger.new(deployment)
       end
     end
 
@@ -60,11 +61,11 @@ module Webistrano
       config = instantiate_configuration
       config.logger.level = options[:verbose]
       set_project_and_stage_names(config)
-      find_or_create_project_dir(config.fetch(:webistrano_project))
+      find_or_create_project_dir(config.fetch(:capsize_project))
       write_deploy(config)
       write_stage(deployment.stage)
 
-      require "webistrano/capsize_setup"
+      require "capsize/capsize_setup"
       capsize_setup(deployment.stage.name)
       require "capistrano/deploy"
       require 'capistrano/rvm'
@@ -106,7 +107,7 @@ module Webistrano
 
     # override in order to use DB logger
     def instantiate_configuration #:nodoc:
-      config = Webistrano::Configuration.new
+      config = Capsize::Configuration.new
       config.logger = logger
       config
     end
@@ -116,14 +117,13 @@ module Webistrano
       set_stage_configuration(config)
       set_stage_roles(config)
 
-      # load_project_template_tasks(config)
       load_stage_custom_recipes(config)
       config
     end
 
-    # sets the Webistrano::Logger instance on the configuration,
+    # sets the Capsize::Logger instance on the configuration,
     # so that it gets used by the SCM#logger
-    def set_webistrano_logger(config)
+    def set_capsize_logger(config)
       config.set :logger, logger
     end
 
@@ -188,10 +188,10 @@ module Webistrano
       end
     end
 
-    # sets webistrano_project and webistrano_stage to corrosponding values
+    # sets capsize_project and capsize_stage to corrosponding values
     def set_project_and_stage_names(config)
-      config.set(:webistrano_project, deployment.stage.project.webistrano_project_name)
-      config.set(:webistrano_stage, deployment.stage.webistrano_stage_name)
+      config.set(:capsize_project, deployment.stage.project.capsize_project_name)
+      config.set(:capsize_stage, deployment.stage.capsize_stage_name)
     end
 
     # casts a given string to the correct Ruby value
@@ -236,10 +236,7 @@ module Webistrano
       case error
       when Net::SSH::AuthenticationFailed
         logger.important "authentication failed for `#{error.message}'"
-      # when Capistrano::Error
-      #   logger.important(error.message)
       else
-        # we did not expect this error, so log the trace
         logger.important(error.message + "\n" + error.backtrace.join("\n"))
       end
     end
@@ -250,12 +247,11 @@ module Webistrano
     end
 
     def find_or_create_project_dir(project)
-      FileUtils.mkdir_p(rooted('capsize_projects')) unless Dir.exists?(rooted('capsize_projects'))
-      FileUtils.mkdir_p(rooted("capsize_projects/#{project}")) unless Dir.exists?(rooted("/capsize_projects/#{project}"))
+      FileUtils.mkdir_p(rooted("#{project}"))
     end
 
     def write_deploy(config)
-      File.open(rooted("capsize_projects/#{config.fetch(:webistrano_project)}/deploy.rb"), 'w+') do |f|
+      File.open(rooted("#{config.fetch(:capsize_project)}/deploy.rb"), 'w+') do |f|
         f.puts "stages = '#{deployment.stage.name}'"
         deployment.stage.project.configuration_parameters.each do |parameter|
           f.puts "set :#{parameter.name}, '#{parameter.value}'"
@@ -264,7 +260,7 @@ module Webistrano
     end
 
     def write_stage(stage)
-      File.open(rooted("capsize_projects/#{stage.project.webistrano_project_name}/#{stage.name}.rb"), 'w+') do |f|
+      File.open(rooted("#{stage.project.capsize_project_name}/#{stage.name}.rb"), 'w+') do |f|
         stage.roles.each do |role|
           f.puts "role :#{role.name}, %w{#{find_host_user(stage.project)}@#{role.host.name}}"
         end
@@ -273,10 +269,6 @@ module Webistrano
 
     def find_host_user(project)
       project.configuration_parameters.find_by_name('user').value
-    end
-
-    def rooted(dir)
-      Rails.root.join(dir)
     end
   end
 end

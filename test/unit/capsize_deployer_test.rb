@@ -1,6 +1,7 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
-class Webistrano::DeployerTest < ActiveSupport::TestCase
+class Capsize::DeployerTest < ActiveSupport::TestCase
+  include ApplicationHelper
 
   def setup
     @project = create_new_project(:template => 'pure_file')
@@ -21,19 +22,19 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
   def test_initialization
     # no deployment
     assert_raise(ArgumentError){
-      deployer = Webistrano::Deployer.new
+      deployer = Capsize::Deployer.new
     }
 
     # deployment + role ==> works
     assert_nothing_raised{
-      deployer = Webistrano::Deployer.new(@deployment)
+      deployer = Capsize::Deployer.new(@deployment)
     }
 
     # deployment with no role
     assert_raise(ArgumentError){
       @stage.roles.clear
       assert @deployment.roles(true).empty?
-      deployer = Webistrano::Deployer.new(@deployment)
+      deployer = Capsize::Deployer.new(@deployment)
     }
   end
 
@@ -66,16 +67,16 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     # now the interesting part
     # variable setting
     mock_cap_config.expects(:set).with(:password, nil) # default by Cap
-    mock_cap_config.expects(:set).with(:webistrano_project, @project.name)
-    mock_cap_config.expects(:set).with(:webistrano_stage, @stage.name)
+    mock_cap_config.expects(:set).with(:capsize_project, @project.name)
+    mock_cap_config.expects(:set).with(:capsize_stage, @stage.name)
 
     # now we expect our Vars to be set
     # project vars
     ProjectConfiguration.templates['pure_file']::CONFIG.each do |k, v|
       if k.to_sym == :application
-        mock_cap_config.expects(:set).with(k, Webistrano::Deployer.type_cast( @project.name ) )
+        mock_cap_config.expects(:set).with(k, Capsize::Deployer.type_cast( @project.name ) )
       else
-        mock_cap_config.expects(:set).with(k, Webistrano::Deployer.type_cast(v) )
+        mock_cap_config.expects(:set).with(k, Capsize::Deployer.type_cast(v) )
       end
     end
 
@@ -87,7 +88,7 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
       when :stage_specific2
         y == 'testapp'
       when :logger
-        y.is_a? Webistrano::Logger
+        y.is_a? Capsize::Logger
       when :real_revision
         true
       else
@@ -100,10 +101,10 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     mock_cap_config.expects(:role).with('app', @host.name, {:primary => true})
 
     # main mock install
-    Webistrano::Configuration.expects(:new).returns(mock_cap_config)
+    Capsize::Configuration.expects(:new).returns(mock_cap_config)
 
     # get things started
-    deployer = Webistrano::Deployer.new( create_new_deployment(:stage => @stage) )
+    deployer = Capsize::Deployer.new( create_new_deployment(:stage => @stage) )
     deployer.stubs(:save_revision)
     deployer.invoke_task!
   end
@@ -155,10 +156,10 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     mock_cap_config.expects(:role).with('db', @host.name + ":44", {:no_release => true, :primary => true})
 
     # main mock install
-    Webistrano::Configuration.expects(:new).returns(mock_cap_config)
+    Capsize::Configuration.expects(:new).returns(mock_cap_config)
 
     # get things started
-    deployer = Webistrano::Deployer.new( create_new_deployment(:stage => @stage) )
+    deployer = Capsize::Deployer.new( create_new_deployment(:stage => @stage) )
     deployer.invoke_task!
   end
 
@@ -210,10 +211,10 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
 
 
     # main mock install
-    Webistrano::Configuration.expects(:new).returns(mock_cap_config)
+    Capsize::Configuration.expects(:new).returns(mock_cap_config)
 
     # get things started
-    deployer = Webistrano::Deployer.new( deployment )
+    deployer = Capsize::Deployer.new( deployment )
     deployer.invoke_task!
   end
 
@@ -227,49 +228,49 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
 
   def test_type_cast
 
-    assert_equal '', Webistrano::Deployer.type_cast('')
-    assert_equal nil, Webistrano::Deployer.type_cast('nil')
-    assert_equal true, Webistrano::Deployer.type_cast('true')
-    assert_equal false, Webistrano::Deployer.type_cast('false')
-    assert_equal :sym, Webistrano::Deployer.type_cast(':sym')
-    assert_equal 'abc', Webistrano::Deployer.type_cast('abc')
-    assert_equal '/usr/local/web', Webistrano::Deployer.type_cast('/usr/local/web')
-    assert_equal 'https://svn.domain.com', Webistrano::Deployer.type_cast('https://svn.domain.com')
-    assert_equal 'svn+ssh://svn.domain.com/svn', Webistrano::Deployer.type_cast('svn+ssh://svn.domain.com/svn')
-    assert_equal 'la le lu 123', Webistrano::Deployer.type_cast('la le lu 123')
+    assert_equal '', Capsize::Deployer.type_cast('')
+    assert_equal nil, Capsize::Deployer.type_cast('nil')
+    assert_equal true, Capsize::Deployer.type_cast('true')
+    assert_equal false, Capsize::Deployer.type_cast('false')
+    assert_equal :sym, Capsize::Deployer.type_cast(':sym')
+    assert_equal 'abc', Capsize::Deployer.type_cast('abc')
+    assert_equal '/usr/local/web', Capsize::Deployer.type_cast('/usr/local/web')
+    assert_equal 'https://svn.domain.com', Capsize::Deployer.type_cast('https://svn.domain.com')
+    assert_equal 'svn+ssh://svn.domain.com/svn', Capsize::Deployer.type_cast('svn+ssh://svn.domain.com/svn')
+    assert_equal 'la le lu 123', Capsize::Deployer.type_cast('la le lu 123')
   end
 
   def test_type_cast_cvs_root
-    assert_equal ":ext:msaba@xxxxx.xxxx.com:/project/cvsroot", Webistrano::Deployer.type_cast(":ext:msaba@xxxxx.xxxx.com:/project/cvsroot")
+    assert_equal ":ext:msaba@xxxxx.xxxx.com:/project/cvsroot", Capsize::Deployer.type_cast(":ext:msaba@xxxxx.xxxx.com:/project/cvsroot")
   end
 
   def test_type_cast_arrays
-    assert_equal ['foo', :bar, 'bam'], Webistrano::Deployer.type_cast("[foo, :bar, 'bam']")
-    assert_equal ['1', '2', '3', '4'], Webistrano::Deployer.type_cast('[1, 2, 3, 4]')
+    assert_equal ['foo', :bar, 'bam'], Capsize::Deployer.type_cast("[foo, :bar, 'bam']")
+    assert_equal ['1', '2', '3', '4'], Capsize::Deployer.type_cast('[1, 2, 3, 4]')
   end
 
   def test_type_cast_arrays_with_embedded_content
-    assert_equal ['1', '2', :a, true], Webistrano::Deployer.type_cast('[1, 2, :a, true]')
+    assert_equal ['1', '2', :a, true], Capsize::Deployer.type_cast('[1, 2, :a, true]')
     # TODO the parser is very simple for now :-(
-    assert_not_equal ['1', ['3', 'foo'], :a, true], Webistrano::Deployer.type_cast('[1, [3, "foo"], :a, true]')
+    assert_not_equal ['1', ['3', 'foo'], :a, true], Capsize::Deployer.type_cast('[1, [3, "foo"], :a, true]')
   end
 
   def test_type_cast_hashes
-    assert_equal({:a => :b}, Webistrano::Deployer.type_cast("{:a => :b}"))
-    assert_equal({:a => '1'}, Webistrano::Deployer.type_cast("{:a => 1}"))
-    assert_equal({'1' => '1', '2' => '2'}, Webistrano::Deployer.type_cast("{1 => 1, 2 => 2}"))
+    assert_equal({:a => :b}, Capsize::Deployer.type_cast("{:a => :b}"))
+    assert_equal({:a => '1'}, Capsize::Deployer.type_cast("{:a => 1}"))
+    assert_equal({'1' => '1', '2' => '2'}, Capsize::Deployer.type_cast("{1 => 1, 2 => 2}"))
   end
 
   def test_type_cast_hashes_with_embedded_content
     # TODO the parser is very simple for now :-(
-    assert_not_equal({'1' => '1', '2' => [:a, :b, '1']}, Webistrano::Deployer.type_cast("{1 => 1, 2 => [:a, :b, 1]}"))
+    assert_not_equal({'1' => '1', '2' => [:a, :b, '1']}, Capsize::Deployer.type_cast("{1 => 1, 2 => [:a, :b, 1]}"))
   end
 
   def test_type_cast_hashes_does_not_cast_evaluations
-    assert_equal '#{foo}', Webistrano::Deployer.type_cast('#{foo}')
-    assert_equal 'a#{foo}', Webistrano::Deployer.type_cast('a#{foo}')
-    assert_equal 'be #{foo}', Webistrano::Deployer.type_cast('be #{foo}')
-    assert_equal '#{foo} 123', Webistrano::Deployer.type_cast(' #{foo} 123')
+    assert_equal '#{foo}', Capsize::Deployer.type_cast('#{foo}')
+    assert_equal 'a#{foo}', Capsize::Deployer.type_cast('a#{foo}')
+    assert_equal 'be #{foo}', Capsize::Deployer.type_cast('be #{foo}')
+    assert_equal '#{foo} 123', Capsize::Deployer.type_cast(' #{foo} 123')
   end
 
   def test_task_invokation_successful
@@ -277,7 +278,7 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
 
     @deployment = create_new_deployment(:stage => @stage, :task => 'deploy:rollback')
 
-    deployer = Webistrano::Deployer.new(@deployment)
+    deployer = Capsize::Deployer.new(@deployment)
     deployer.invoke_task!
 
     assert_equal @stage, @deployment.stage
@@ -286,7 +287,7 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     assert @deployment.completed?
     assert @deployment.success?
 
-    remove_directory(@deployment.stage.project.webistrano_project_name)
+    remove_directory(@deployment.stage.project.capsize_project_name)
   end
 
   def test_task_invokation_not_successful
@@ -317,11 +318,11 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     mock_cap_config.expects(:find_and_execute_task).raises(Capistrano::Error, 'sorry - no capistrano today')
 
     # main mock install
-    Webistrano::Configuration.expects(:new).returns(mock_cap_config)
+    Capsize::Configuration.expects(:new).returns(mock_cap_config)
 
     @deployment = create_new_deployment(:stage => @stage, :task => 'deploy:update')
 
-    deployer = Webistrano::Deployer.new(@deployment)
+    deployer = Capsize::Deployer.new(@deployment)
     deployer.invoke_task!
 
     assert_equal 'deploy:update', @deployment.task
@@ -330,7 +331,7 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
 
     # check error message
     assert_match(/sorry - no capistrano today/, @deployment.log)
-    remove_directory(@deployment.stage.project.webistrano_project_name)
+    remove_directory(@deployment.stage.project.capsize_project_name)
   end
 
   def test_db_logging
@@ -347,22 +348,22 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     mock_task.stubs(:fully_qualified_name).returns('deploy:update')
     mock_task.stubs(:name).returns('deploy:update')
 
-    mock_cap_config = Webistrano::Configuration.new
-    mock_cap_config.logger = Webistrano::Logger.new(@deployment)
+    mock_cap_config = Capsize::Configuration.new
+    mock_cap_config.logger = Capsize::Logger.new(@deployment)
     mock_cap_config.expects(:find_task).returns(mock_task)
 
     # main mock install
-    Webistrano::Configuration.expects(:new).returns(mock_cap_config)
+    Capsize::Configuration.expects(:new).returns(mock_cap_config)
 
     # do a random deploy
-    deployer = Webistrano::Deployer.new(@deployment)
+    deployer = Capsize::Deployer.new(@deployment)
     deployer.stubs(:save_revision)
     deployer.invoke_task!
 
     # the log in the DB should not be empty
     @deployment.reload
     assert_equal "  * executing `deploy:update'\n", @deployment.log
-    remove_directory(@deployment.stage.project.webistrano_project_name)
+    remove_directory(@deployment.stage.project.capsize_project_name)
   end
 
   def test_db_logging_if_task_vars_incomplete
@@ -374,13 +375,13 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     @project.configuration_parameters.delete_all
     @stage.configuration_parameters.delete_all
 
-    deployer = Webistrano::Deployer.new(@deployment)
+    deployer = Capsize::Deployer.new(@deployment)
     deployer.invoke_task!
 
     # the log in the DB should not be empty
     @deployment.reload
     assert_match(/Please specify the repo_url that houses your application's code, set :repo_url, 'foo'/, @deployment.log) # ' fix highlighting
-    remove_directory(@deployment.stage.project.webistrano_project_name)
+    remove_directory(@deployment.stage.project.capsize_project_name)
   end
 
   def test_handling_of_scm_error
@@ -398,12 +399,12 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     Open4.expects(:popen4).returns(mock_status)
 
     deployment = create_new_deployment(:stage => stage, :task => 'deploy:default')
-    deployer = Webistrano::Deployer.new(deployment)
+    deployer = Capsize::Deployer.new(deployment)
     deployer.invoke_task!
 
     deployment.reload
     assert_match(/Local scm command failed/, deployment.log)
-    remove_directory(deployment.stage.project.webistrano_project_name)
+    remove_directory(deployment.stage.project.capsize_project_name)
   end
 
   def test_handling_of_open_scm_command_error
@@ -419,12 +420,12 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     stage.configuration_parameters.build(:name => 'scm_command', :value => '/tmp/foobar_scm_command').save!
 
     deployment = create_new_deployment(:stage => stage, :task => 'deploy:default')
-    deployer = Webistrano::Deployer.new(deployment)
+    deployer = Capsize::Deployer.new(deployment)
     deployer.invoke_task!
 
     deployment.reload
     assert_match(/Local scm command not found/, deployment.log)
-    remove_directory(deployment.stage.project.webistrano_project_name)
+    remove_directory(deployment.stage.project.capsize_project_name)
   end
 
   def test_handling_of_prompt_configuration
@@ -439,9 +440,9 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     # create the deployment
     deployment = create_new_deployment(:stage => stage_with_prompt, :task => 'deploy', :prompt_config => {:password => '123'})
 
-    deployer = Webistrano::Deployer.new(deployment)
+    deployer = Capsize::Deployer.new(deployment)
     deployer.invoke_task!
-    remove_directory(stage_with_prompt.project.webistrano_project_name)
+    remove_directory(stage_with_prompt.project.capsize_project_name)
   end
 
   def test_loading_of_template_tasks
@@ -475,15 +476,15 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     mock_cap_config.expects(:load).with(:string => @project.tasks )
 
     # main mock install
-    Webistrano::Configuration.expects(:new).returns(mock_cap_config)
+    Capsize::Configuration.expects(:new).returns(mock_cap_config)
 
     #
     # start
 
 
-    deployer = Webistrano::Deployer.new(@deployment)
+    deployer = Capsize::Deployer.new(@deployment)
     deployer.invoke_task!
-    remove_directory(@deployment.stage.project.webistrano_project_name)
+    remove_directory(@deployment.stage.project.capsize_project_name)
   end
 
   def test_custom_recipes
@@ -525,14 +526,14 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     mock_cap_config.expects(:load).with(:string => recipe_2.body )
 
     # main mock install
-    Webistrano::Configuration.expects(:new).returns(mock_cap_config)
+    Capsize::Configuration.expects(:new).returns(mock_cap_config)
 
     #
     # start
 
-    deployer = Webistrano::Deployer.new(@deployment)
+    deployer = Capsize::Deployer.new(@deployment)
     deployer.invoke_task!
-    remove_directory(@deployment.stage.project.webistrano_project_name)
+    remove_directory(@deployment.stage.project.capsize_project_name)
   end
 
   def test_load_order_of_recipes
@@ -571,14 +572,14 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     mock_cap_config.expects(:load).with(:string => recipe_1.body ).in_sequence(seq)
 
     # main mock install
-    Webistrano::Configuration.expects(:new).returns(mock_cap_config)
+    Capsize::Configuration.expects(:new).returns(mock_cap_config)
 
     #
     # start
 
-    deployer = Webistrano::Deployer.new(@deployment)
+    deployer = Capsize::Deployer.new(@deployment)
     deployer.invoke_task!
-    remove_directory(@deployment.stage.project.webistrano_project_name)
+    remove_directory(@deployment.stage.project.capsize_project_name)
 
   end
 
@@ -606,14 +607,14 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     mock_cap_config.expects(:find_and_execute_task).raises(RuntimeError)
 
     # main mock install
-    Webistrano::Configuration.expects(:new).returns(mock_cap_config)
+    Capsize::Configuration.expects(:new).returns(mock_cap_config)
 
     #
     # start
 
-    deployer = Webistrano::Deployer.new(@deployment)
+    deployer = Capsize::Deployer.new(@deployment)
     deployer.invoke_task!
-    remove_directory(@deployment.stage.project.webistrano_project_name)
+    remove_directory(@deployment.stage.project.capsize_project_name)
 
 
     @deployment.reload
@@ -653,17 +654,17 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     install_fake_set(mock_cap_config)
 
     # main mock install
-    Webistrano::Configuration.expects(:new).returns(mock_cap_config)
+    Capsize::Configuration.expects(:new).returns(mock_cap_config)
 
     # run
-    deployer = Webistrano::Deployer.new(@deployment)
+    deployer = Capsize::Deployer.new(@deployment)
     deployer.invoke_task!
-    remove_directory(@deployment.stage.project.webistrano_project_name)
+    remove_directory(@deployment.stage.project.capsize_project_name)
 
 
     # check that the correct project/stage name was set
-    assert_equal "my_sample_project", $vars_set[:webistrano_project]
-    assert_equal "my_sample_stage_12", $vars_set[:webistrano_stage]
+    assert_equal "my_sample_project", $vars_set[:capsize_project]
+    assert_equal "my_sample_stage_12", $vars_set[:capsize_stage]
   end
 
   def test_reference_of_configuration_parameters
@@ -676,9 +677,9 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
 
     install_fake_set(mock_cap_config)
 
-    deployer = Webistrano::Deployer.new(@deployment)
+    deployer = Capsize::Deployer.new(@deployment)
     deployer.invoke_task!
-    remove_directory(@deployment.stage.project.webistrano_project_name)
+    remove_directory(@deployment.stage.project.capsize_project_name)
 
 
     assert_equal "Sir: a nice value here, please!", $vars_set[:using_foo]
@@ -693,9 +694,9 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
 
     install_fake_set(mock_cap_config)
 
-    deployer = Webistrano::Deployer.new(@deployment)
+    deployer = Capsize::Deployer.new(@deployment)
     deployer.invoke_task!
-    remove_directory(@deployment.stage.project.webistrano_project_name)
+    remove_directory(@deployment.stage.project.capsize_project_name)
 
 
     assert_equal '#{Kernel.exit}', $vars_set[:foo]
@@ -719,9 +720,9 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     deployment.save!
 
     # run
-    deployer = Webistrano::Deployer.new(deployment)
+    deployer = Capsize::Deployer.new(deployment)
     deployer.invoke_task!
-    remove_directory(deployment.stage.project.webistrano_project_name)
+    remove_directory(deployment.stage.project.capsize_project_name)
 
     assert_equal "a nice value here, please! 1234", $vars_set[:using_foo]
   end
@@ -732,9 +733,9 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     assert_not_nil Capistrano::Configuration.default_io_proc
     assert Capistrano::Configuration.default_io_proc.is_a?(Proc)
 
-    # Webistrano Config
-    assert_not_nil Webistrano::Configuration.default_io_proc
-    assert Webistrano::Configuration.default_io_proc.is_a?(Proc)
+    # Capsize Config
+    assert_not_nil Capsize::Configuration.default_io_proc
+    assert Capsize::Configuration.default_io_proc.is_a?(Proc)
   end
 
   def test_ssh_options
@@ -745,19 +746,19 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     c.save!
 
 
-    deployer = Webistrano::Deployer.new(@deployment)
+    deployer = Capsize::Deployer.new(@deployment)
 
     deployer.expects(:execute_requested_actions).returns(nil)
     deployer.stubs(:save_revision)
     deployer.invoke_task!
-    remove_directory(@deployment.project.webistrano_project_name)
+    remove_directory(@deployment.project.capsize_project_name)
 
   end
 
   def test_list_tasks
     d = Deployment.new
     d.stage = @stage
-    deployer = Webistrano::Deployer.new(d)
+    deployer = Capsize::Deployer.new(d)
 
     assert_not_nil deployer.list_tasks
     assert_equal 25, deployer.list_tasks.size, deployer.list_tasks.map(&:fully_qualified_name).sort.inspect
@@ -782,7 +783,7 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
   end
 
   def test_project_directory_is_created
-    deployer = Webistrano::Deployer.new(@deployment)
+    deployer = Capsize::Deployer.new(@deployment)
 
     home_exists = Dir.exists?(rooted("capsize_projects"))
     assert !Dir.exists?(rooted("capsize_projects/sample_project"))
@@ -790,28 +791,28 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     assert Dir.exists?(rooted("capsize_projects")) unless home_exists
     assert Dir.exists?(rooted("capsize_projects/sample_project"))
 
-    assert !Dir.exists?(rooted("capsize_projects/#{@deployment.stage.project.webistrano_project_name}"))
+    assert !Dir.exists?(rooted("capsize_projects/#{@deployment.stage.project.capsize_project_name}"))
     deployer.invoke_task!
-    assert Dir.exists?(rooted("capsize_projects/#{@deployment.stage.project.webistrano_project_name}"))
+    assert Dir.exists?(rooted("capsize_projects/#{@deployment.stage.project.capsize_project_name}"))
 
     remove_directory("sample_project")
-    remove_directory(@deployment.stage.project.webistrano_project_name)
+    remove_directory(@deployment.stage.project.capsize_project_name)
   end
 
   def test_deploy_file_is_written
-    assert !File.exist?(rooted("capsize_projects/#{@deployment.stage.project.webistrano_project_name}/deploy.rb"))
-    deployer = Webistrano::Deployer.new(@deployment)
+    assert !File.exist?(rooted("capsize_projects/#{@deployment.stage.project.capsize_project_name}/deploy.rb"))
+    deployer = Capsize::Deployer.new(@deployment)
     deployer.invoke_task!
-    assert File.exist?(rooted("capsize_projects/#{@deployment.stage.project.webistrano_project_name}/deploy.rb"))
-    remove_directory(@deployment.stage.project.webistrano_project_name)
+    assert File.exist?(rooted("capsize_projects/#{@deployment.stage.project.capsize_project_name}/deploy.rb"))
+    remove_directory(@deployment.stage.project.capsize_project_name)
   end
 
   def test_stage_file_is_written
-    assert !File.exist?(rooted("capsize_projects/#{@deployment.stage.project.webistrano_project_name}/#{@deployment.stage.name}.rb"))
-    deployer = Webistrano::Deployer.new(@deployment)
+    assert !File.exist?(rooted("capsize_projects/#{@deployment.stage.project.capsize_project_name}/#{@deployment.stage.name}.rb"))
+    deployer = Capsize::Deployer.new(@deployment)
     deployer.invoke_task!
-    assert File.exist?(rooted("capsize_projects/#{@deployment.stage.project.webistrano_project_name}/#{@deployment.stage.name}.rb"))
-    remove_directory(@deployment.stage.project.webistrano_project_name)
+    assert File.exist?(rooted("capsize_projects/#{@deployment.stage.project.capsize_project_name}/#{@deployment.stage.name}.rb"))
+    remove_directory(@deployment.stage.project.capsize_project_name)
   end
 
 
@@ -842,7 +843,7 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     mock_cap_config.stubs(:role)
 
     # main mock install
-    Webistrano::Configuration.expects(:new).returns(mock_cap_config)
+    Capsize::Configuration.expects(:new).returns(mock_cap_config)
 
     mock_cap_config
   end
@@ -883,20 +884,16 @@ class Webistrano::DeployerTest < ActiveSupport::TestCase
     mock_cap_config.expects(:find_and_execute_task).with(task_name, {:after => :finish, :before => :start})
 
     # main mock install
-    Webistrano::Configuration.expects(:new).returns(mock_cap_config)
+    Capsize::Configuration.expects(:new).returns(mock_cap_config)
 
     # get things started
-    deployer = Webistrano::Deployer.new(@deployment)
+    deployer = Capsize::Deployer.new(@deployment)
     deployer.invoke_task!
-    remove_directory(@deploymen.stage.project.webistrano_project_name)
+    remove_directory(@deploymen.stage.project.capsize_project_name)
   end
 
   def remove_directory(project)
     FileUtils.rm_rf(rooted("capsize_projects/#{project}"))
-  end
-
-  def rooted(dir)
-    Rails.root.join(dir)
   end
 
 end

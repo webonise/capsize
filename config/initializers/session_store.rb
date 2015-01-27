@@ -10,6 +10,6 @@ Www::Application.config.session_store :cookie_store, :key => '_www_session'
 
 # from environment.rb
 #config.action_controller.session = {
-#    :key    => '_webistrano_session',
-#    :secret => WebistranoConfig[:session_secret]
+#    :key    => '_capsize_session',
+#    :secret => CapsizeConfig[:session_secret]
 #}

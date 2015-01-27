@@ -1,21 +1,21 @@
-Webistrano - Capistrano deployment the easy way
+Capsize - Capistrano deployment the easy way
 
 
 
 About:
-  Webistrano is a Web UI for managing Capistrano deployments.
+  Capsize is a Web UI for managing Capistrano deployments.
   It lets you manage projects and their stages like test, production, 
   and staging with different settings. Those stages can then
-  be deployed with Capistrano through Webistrano.
+  be deployed with Capistrano through Capsize.
 
 
 Installation:
 
   1. Configuration
   
-    Copy config/webistrano_config.rb.sample to config/webistrano_config.rb
+    Copy config/capsize_config.rb.sample to config/capsize_config.rb
     and edit appropriatly. In this configuration file you can set the mail
-    settings of Webistrano.
+    settings of Capsize.
   
   2. Database
   
@@ -25,15 +25,15 @@ Installation:
   
     Then create the database structure with Rake:
   
-    > cd webistrano
+    > cd capsize
     > RAILS_ENV=production rake db:migrate
   
-  3. Start Webistrano  
+  3. Start Capsize  
   
-    > cd webistrano
+    > cd capsize
     > ruby script/server -d -p 3000 -e production
   
-    Webistrano is then available at http://host:3000/
+    Capsize is then available at http://host:3000/
   
     The default user is `admin`, the password is `admin`. Please change the password
     after the first login.
@@ -43,4 +43,4 @@ Author:
   
 License: 
   Code: BSD, see LICENSE.txt
-  Images: Right to use in their provided form in Webistrano installations. No other right granted.
+  Images: Right to use in their provided form in Capsize installations. No other right granted.

@@ -177,7 +177,7 @@ class User < ActiveRecord::Base
     end
     
     def password_required?
-      self.local_user? && WebistranoConfig[:authentication_method] != :cas && (crypted_password.blank? || !password.blank?)
+      self.local_user? && CapsizeConfig[:authentication_method] != :cas && (crypted_password.blank? || !password.blank?)
     end
 
     

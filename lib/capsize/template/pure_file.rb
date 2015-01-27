@@ -1,8 +1,8 @@
-module Webistrano
+module Capsize
   module Template
     module PureFile
       
-      CONFIG = Webistrano::Template::Base::CONFIG.dup.merge({
+      CONFIG = Capsize::Template::Base::CONFIG.dup.merge({
       }).freeze
       
       DESC = <<-'EOS'
@@ -10,7 +10,7 @@ module Webistrano
         The basic (re)start/stop tasks of Capistrano are overrided with NOP tasks.
       EOS
       
-      TASKS = Webistrano::Template::Base::TASKS + <<-'EOS'
+      TASKS = Capsize::Template::Base::TASKS + <<-'EOS'
       
          namespace :deploy do
            task :restart, :roles => :app, :except => { :no_release => true } do

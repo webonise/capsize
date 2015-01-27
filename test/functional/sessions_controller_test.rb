@@ -80,7 +80,7 @@ class SessionsControllerTest < ActionController::TestCase
     login_as :quentin
     get :version, :format => 'xml'
     assert_select "application" do |element|
-      assert_select 'name', :text => "Webistrano"
+      assert_select 'name', :text => "Capsize"
       assert_select 'version', :text => WEBISTRANO_VERSION
     end
   end

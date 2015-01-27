@@ -1,8 +1,8 @@
-module Webistrano
+module Capsize
   module Template
     module Rails
       
-      CONFIG = Webistrano::Template::Base::CONFIG.dup.merge({
+      CONFIG = Capsize::Template::Base::CONFIG.dup.merge({
         :rails_env => 'production'
       }).freeze
       
@@ -11,7 +11,7 @@ module Webistrano
         for application servers. Uses default Capistrano tasks.
       EOS
       
-      TASKS = Webistrano::Template::Base::TASKS + <<-'EOS'
+      TASKS = Capsize::Template::Base::TASKS + <<-'EOS'
          
       EOS
     

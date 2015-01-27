@@ -1,5 +1,5 @@
 # a logger for Capistrano::Configuration that logs to the database
-module Webistrano
+module Capsize
   class Logger
     
     attr_accessor :level

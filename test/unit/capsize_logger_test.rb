@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
-class Webistrano::LoggerTest < ActiveSupport::TestCase
+class Capsize::LoggerTest < ActiveSupport::TestCase
 
   def setup
     @project = create_new_project(:template => 'rails')
@@ -16,34 +16,34 @@ class Webistrano::LoggerTest < ActiveSupport::TestCase
     
     # no deployment given
     assert_raise(ArgumentError){
-      logger = Webistrano::Logger.new
+      logger = Capsize::Logger.new
     }
     
     assert_raise(NoMethodError){
-      logger = Webistrano::Logger.new(nil)
+      logger = Capsize::Logger.new(nil)
     }
     
     # already completed deployment
     assert_raise(ArgumentError){
       deployment = create_new_deployment(:stage => @stage_with_role, :task => 'deploy:setup')
       deployment.complete_with_error!
-      logger = Webistrano::Logger.new( deployment )  
+      logger = Capsize::Logger.new( deployment )  
     }
     
     # not completed deployment
     assert_nothing_raised{
       deployment = create_new_deployment(:stage => @stage_with_role, :task => 'deploy:setup')
       assert !deployment.completed?
-      logger = Webistrano::Logger.new( deployment )  
+      logger = Capsize::Logger.new( deployment )  
     }
     
   end
   
   def test_log
     deployment = create_new_deployment(:stage => @stage_with_role, :task => 'deploy:setup')
-    logger = Webistrano::Logger.new( deployment )
+    logger = Capsize::Logger.new( deployment )
     
-    logger.level = Webistrano::Logger::TRACE
+    logger.level = Capsize::Logger::TRACE
     
     logger.debug "schu bi du"
     deployment.reload
@@ -74,8 +74,8 @@ class Webistrano::LoggerTest < ActiveSupport::TestCase
     @stage_with_role.reload
     
     deployment = create_new_deployment(:stage => @stage_with_role, :task => 'deploy:setup', :prompt_config => {:password => '@$%deploy@$'})
-    logger = Webistrano::Logger.new( deployment )
-    logger.level = Webistrano::Logger::TRACE
+    logger = Capsize::Logger.new( deployment )
+    logger.level = Capsize::Logger::TRACE
 
     logger.info "this is my_secret password"
     deployment.reload

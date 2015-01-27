@@ -1,4 +1,4 @@
-== Welcome to Webistrano on Rails 3 including LDAP authentication
+== Welcome to Capsize on Rails 3 including LDAP authentication
 
 
 
@@ -8,9 +8,9 @@ To install this version just clone the repo into your local directory and run "b
 This should download all needed dependencies. If you encounter problems check if ruby 1.9.x and bundler
 (gem install bundle) are installed.
 
-== Configure Webistrano
+== Configure Capsize
 
-To configure webistrano please remove (or copy the files) the sample files in the config dir and edit it accordingly.
+To configure capsize please remove (or copy the files) the sample files in the config dir and edit it accordingly.
 
 == First run
 
