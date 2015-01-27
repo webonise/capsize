@@ -44,7 +44,7 @@ ActiveRecord::Schema.define(:version => 20131220141503) do
 
   create_table "deployments", :force => true do |t|
     t.string   "task"
-    t.text     "log"
+    t.text     "log",               :limit => 2147483647
     t.integer  "stage_id"
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -54,7 +54,7 @@ ActiveRecord::Schema.define(:version => 20131220141503) do
     t.string   "excluded_host_ids"
     t.string   "revision"
     t.integer  "pid"
-    t.string   "status",            :default => "running"
+    t.string   "status",                                  :default => "running"
   end
 
   add_index "deployments", ["stage_id"], :name => "index_deployments_on_stage_id"
@@ -64,6 +64,8 @@ ActiveRecord::Schema.define(:version => 20131220141503) do
     t.integer "deployment_id"
     t.integer "role_id"
   end
+
+  add_index "deployments_roles", ["deployment_id", "role_id"], :name => "index_deployments_roles_on_deployment_id_and_role_id", :unique => true
 
   create_table "hosts", :force => true do |t|
     t.string   "name"
@@ -82,6 +84,13 @@ ActiveRecord::Schema.define(:version => 20131220141503) do
     t.datetime "updated_at"
     t.boolean  "archived",    :default => false
   end
+
+  create_table "projects_users", :id => false, :force => true do |t|
+    t.integer "project_id"
+    t.integer "user_id"
+  end
+
+  add_index "projects_users", ["project_id", "user_id"], :name => "index_projects_users_on_project_id_and_user_id", :unique => true
 
   create_table "recipe_versions", :force => true do |t|
     t.integer  "recipe_id"
@@ -106,6 +115,8 @@ ActiveRecord::Schema.define(:version => 20131220141503) do
     t.integer "recipe_id"
     t.integer "stage_id"
   end
+
+  add_index "recipes_stages", ["recipe_id", "stage_id"], :name => "index_recipes_stages_on_recipe_id_and_stage_id", :unique => true
 
   create_table "roles", :force => true do |t|
     t.string   "name"
@@ -136,6 +147,14 @@ ActiveRecord::Schema.define(:version => 20131220141503) do
   end
 
   add_index "stages", ["project_id"], :name => "index_stages_on_project_id"
+
+  create_table "stages_users", :id => false, :force => true do |t|
+    t.integer "stage_id"
+    t.integer "user_id"
+    t.boolean "read_only"
+  end
+
+  add_index "stages_users", ["stage_id", "user_id"], :name => "index_stages_users_on_stage_id_and_user_id", :unique => true
 
   create_table "user_project_links", :force => true do |t|
     t.integer  "user_id"
