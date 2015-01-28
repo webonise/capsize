@@ -16,6 +16,8 @@ module Capsize
 
     attr_accessor :logger
 
+    attr_reader :browser_log
+
     def initialize(deployment)
       @options = {
         :recipes => [],

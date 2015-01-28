@@ -813,6 +813,18 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
     remove_directory(@deployment.stage.project.capsize_project_name)
   end
 
+  def test_output_logs_in_browser_log
+    deployer = Capsize::Deployer.new(@deployment)
+    deployer.set_output
+    print 'thisshouldshowup'
+    deployer.log_output
+    assert $stdout == STDOUT
+    deployer.browser_log.rewind
+
+    assert_match /thisshouldshowup/, deployer.browser_log.string
+    assert_match /thisshouldshowup/, @deployment.log
+  end
+
 
   protected
 
