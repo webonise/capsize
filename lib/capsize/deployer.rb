@@ -1,8 +1,6 @@
 require 'find'
 require 'fileutils'
-require 'logger'
 require 'capistrano/all'
-require 'sshkit'
 
 
 module Capsize
@@ -50,7 +48,7 @@ module Capsize
     def invoke_task!
       options[:actions] = deployment.task
 
-      case new_execute!
+      case execute!
       when false
         deployment.complete_with_error!
         false
@@ -60,32 +58,22 @@ module Capsize
       end
     end
 
-    def new_execute!
+    def execute!
       config = instantiate_configuration
       set_project_and_stage_names(config)
       find_or_create_project_dir(config.fetch(:capsize_project))
       write_deploy(config)
       write_stage(deployment.stage)
 
-      require "capsize/capsize_setup"
+      load_requirements
       capsize_setup(deployment.stage)
-      require "capistrano/deploy"
-      require 'capistrano/rvm'
-      require 'capistrano/bundler'
-      require 'capistrano/rails'
       set_output
       status = catch(:abort_called_by_capistrano){
         Dir.glob('capistrano/tasks/*.rake').each { |r| import r }
         Capistrano::Application.invoke("#{deployment.stage.name}")
         Capistrano::Application.invoke(options[:actions])
       }
-
-      $stdout = STDOUT
-      @browser_log.rewind
-      @browser_log.each_line do |line|
-       deployment.log = (deployment.log || '') + line
-       deployment.save!
-      end
+      log_output
 
       if status == :capistrano_abort
         false
@@ -281,10 +269,25 @@ module Capsize
       project.configuration_parameters.find_by_name('user').value
     end
 
+    def load_requirements
+      require "capsize/capsize_setup"
+      require "capistrano/deploy"
+      require 'capistrano/rvm'
+      require 'capistrano/bundler'
+    end
+
     def set_output
       @browser_log = StringIO.new
       $stdout = @browser_log
       $stdout.sync = true
+    end
+
+    def log_output
+      $stdout = STDOUT
+      @browser_log.rewind
+      @browser_log.each_line do |line|
+        deployment.log = (deployment.log || '') + line
+      end
     end
 
   end
