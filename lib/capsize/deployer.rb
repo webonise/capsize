@@ -1,11 +1,14 @@
 require 'find'
 require 'fileutils'
+require 'logger'
 require 'capistrano/all'
+require 'sshkit'
 
 
 module Capsize
   class Deployer
     include ApplicationHelper
+    include Capistrano::DSL
     # Mix-in the Capistrano behavior
     # holds the capistrano options, see capistrano/lib/capistrano/cli/options.rb
     attr_accessor :options
@@ -59,7 +62,6 @@ module Capsize
 
     def new_execute!
       config = instantiate_configuration
-      config.logger.level = options[:verbose]
       set_project_and_stage_names(config)
       find_or_create_project_dir(config.fetch(:capsize_project))
       write_deploy(config)
@@ -70,12 +72,20 @@ module Capsize
       require "capistrano/deploy"
       require 'capistrano/rvm'
       require 'capistrano/bundler'
-      # require 'capistrano/rails/migrations'
+      require 'capistrano/rails'
+      set_output
       status = catch(:abort_called_by_capistrano){
         Dir.glob('capistrano/tasks/*.rake').each { |r| import r }
         Capistrano::Application.invoke("#{deployment.stage.name}")
         Capistrano::Application.invoke(options[:actions])
       }
+
+      $stdout = STDOUT
+      @browser_log.rewind
+      @browser_log.each_line do |line|
+       deployment.log = (deployment.log || '') + line
+       deployment.save!
+      end
 
       if status == :capistrano_abort
         false
@@ -270,5 +280,12 @@ module Capsize
     def find_host_user(project)
       project.configuration_parameters.find_by_name('user').value
     end
+
+    def set_output
+      @browser_log = StringIO.new
+      $stdout = @browser_log
+      $stdout.sync = true
+    end
+
   end
 end
