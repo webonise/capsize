@@ -6,6 +6,7 @@ require 'capistrano/all'
 module Capsize
   class Deployer
     include ApplicationHelper
+    include Capistrano::DSL
     # Mix-in the Capistrano behavior
     # holds the capistrano options, see capistrano/lib/capistrano/cli/options.rb
     attr_accessor :options
@@ -14,6 +15,8 @@ module Capsize
     attr_accessor :deployment
 
     attr_accessor :logger
+
+    attr_reader :browser_log
 
     def initialize(deployment)
       @options = {
@@ -47,7 +50,7 @@ module Capsize
     def invoke_task!
       options[:actions] = deployment.task
 
-      case new_execute!
+      case execute!
       when false
         deployment.complete_with_error!
         false
@@ -57,25 +60,21 @@ module Capsize
       end
     end
 
-    def new_execute!
+    def execute!
       config = instantiate_configuration
-      config.logger.level = options[:verbose]
       set_project_and_stage_names(config)
       find_or_create_project_dir(config.fetch(:capsize_project))
       write_deploy(config)
       write_stage(deployment.stage)
 
-      require "capsize/capsize_setup"
+      load_requirements
       capsize_setup(deployment.stage)
-      require "capistrano/deploy"
-      require 'capistrano/rvm'
-      require 'capistrano/bundler'
-      # require 'capistrano/rails/migrations'
+      set_output
       status = catch(:abort_called_by_capistrano){
-        Dir.glob('capistrano/tasks/*.rake').each { |r| import r }
         Capistrano::Application.invoke("#{deployment.stage.name}")
         Capistrano::Application.invoke(options[:actions])
       }
+      close_output
 
       if status == :capistrano_abort
         false
@@ -256,6 +255,11 @@ module Capsize
         deployment.stage.project.configuration_parameters.each do |parameter|
           f.puts "set :#{parameter.name}, '#{parameter.value}'"
         end
+          f.puts "after :#{deployment.stage.name}, :custom_log"
+        %w{deploy:started deploy:updated deploy:published deploy:finished}.each do |task|
+          # f.puts before_flow(task)
+          f.puts after_flow(task)
+        end
       end
     end
 
@@ -270,5 +274,32 @@ module Capsize
     def find_host_user(project)
       project.configuration_parameters.find_by_name('user').value
     end
+
+    def load_requirements
+      require "capsize/capsize_setup"
+      require "capistrano/deploy"
+      require 'capistrano/rvm'
+      require 'capistrano/bundler'
+    end
+
+    def before_flow(task)
+      "before '#{task}', :custom_log"
+    end
+
+    def after_flow(task)
+      "after '#{task}', :custom_log"
+    end
+
+    def set_output
+      @browser_log = StringIO.new
+      $stdout = @browser_log
+      $stdout.sync = true
+      ENV['deployment_id'] = deployment.id.to_s
+    end
+
+    def close_output
+      $stdout = STDOUT
+    end
+
   end
 end
