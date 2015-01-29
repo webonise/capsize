@@ -257,7 +257,7 @@ module Capsize
         end
           f.puts "after :#{deployment.stage.name}, :custom_log"
         %w{deploy:started deploy:updated deploy:published deploy:finished}.each do |task|
-          f.puts before_flow(task)
+          # f.puts before_flow(task)
           f.puts after_flow(task)
         end
       end
@@ -294,8 +294,7 @@ module Capsize
       @browser_log = StringIO.new
       $stdout = @browser_log
       $stdout.sync = true
-      ENV['DEPLOYMENT_ID'] = deployment.id.to_s
-      ENV['LINE_NO'] = '0'
+      ENV['deployment_id'] = deployment.id.to_s
     end
 
     def close_output
