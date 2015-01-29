@@ -8,6 +8,16 @@ namespace :load do
   end
 end
 
+task :custom_log do
+  deployment = Deployment.find(ENV['DEPLOYMENT_ID'])
+  $stdout.rewind
+  $stdout.each_line do |line|
+    deployment.log = (deployment.log || '') + line
+  end
+  deployment.save!
+  Rake::Task["custom_log"].reenable
+end
+
 def capsize_setup(stage)
   Rake::Task.define_task(stage.name) do
     set(:stage, stage.name.to_sym)
