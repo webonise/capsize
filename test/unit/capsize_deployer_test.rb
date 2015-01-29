@@ -817,14 +817,12 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
     deployer = Capsize::Deployer.new(@deployment)
     deployer.set_output
     print 'thisshouldshowup'
-    deployer.log_output
+    deployer.close_output
     assert $stdout == STDOUT
     deployer.browser_log.rewind
 
     assert_match /thisshouldshowup/, deployer.browser_log.string
-    assert_match /thisshouldshowup/, @deployment.log
   end
-
 
   protected
 
