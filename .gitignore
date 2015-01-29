@@ -20,3 +20,6 @@ tmp/
 
 #capfiles
 capsize_projects
+
+#mysqldump files
+*.sql
