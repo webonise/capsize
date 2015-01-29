@@ -5,7 +5,7 @@ class ApplicationController < ActionController::Base
   # include ExceptionNotification::Notifiable
   include AuthenticatedSystem
 
-  before_filter CASClient::Frameworks::Rails::Filter if WebistranoConfig[:authentication_method] == :cas
+  before_filter CASClient::Frameworks::Rails::Filter if CapsizeConfig[:authentication_method] == :cas
   before_filter :login_from_cookie, :login_required, :ensure_not_disabled, :setup_sidebar_vars
   around_filter :set_timezone
 
@@ -101,7 +101,7 @@ class ApplicationController < ActionController::Base
     self.current_user.forget_me if logged_in?
     cookies.delete :auth_token
     reset_session
-    if WebistranoConfig[:authentication_method] != :cas
+    if CapsizeConfig[:authentication_method] != :cas
       flash[:notice] = "You have been logged out."
       redirect_back_or_default( home_path )
     else

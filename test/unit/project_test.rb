@@ -78,9 +78,9 @@ class ProjectTest < ActiveSupport::TestCase
     assert_match /namespace/, p.tasks
   end
   
-  def test_webistrano_project_name
+  def test_capsize_project_name
     project = create_new_project(:name => '&my_ Project')
-    assert_equal '_my__project', project.webistrano_project_name
+    assert_equal '_my__project', project.capsize_project_name
   end
   
   def test_prepare_cloning

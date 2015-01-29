@@ -1,7 +1,7 @@
 require File.expand_path('../boot', __FILE__)
 
-# load Webistrano configuration
-require File.expand_path('../webistrano_config', __FILE__)
+# load Capsize configuration
+require File.expand_path('../capsize_config', __FILE__)
 
 # moved fro preinitializer
 # is this necessary
@@ -72,15 +72,14 @@ module Www
     config.filter_parameters += [:password]
 
     config.action_dispatch.session = {
-        :key    => '_webistrano_session',
-        :secret => WebistranoConfig[:session_secret]
+        :key    => '_capsize_session',
+        :secret => CapsizeConfig[:session_secret]
     }
 
   end
 end
 
 require 'open4'
-require 'capistrano/cli'
 require 'syntax/convertors/html'
 
 # from environment.rb needed?

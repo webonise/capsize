@@ -1,8 +1,8 @@
-module Webistrano
+module Capsize
   module Template
     module MongrelRails
       
-      CONFIG = Webistrano::Template::Rails::CONFIG.dup.merge({
+      CONFIG = Capsize::Template::Rails::CONFIG.dup.merge({
         :mongrel_config => 'PATH to mongrel_cluster.yml, you need to create it yourself' 
       }).freeze
       
@@ -24,9 +24,9 @@ module Webistrano
         Mongrel Cluster instead.
       EOS
       
-      TASKS = Webistrano::Template::Base::TASKS + <<-'EOS'
+      TASKS = Capsize::Template::Base::TASKS + <<-'EOS'
       
-        namespace :webistrano do
+        namespace :capsize do
           namespace :mongrel do
             [ :stop, :start, :restart ].each do |t|
               desc "#{t.to_s.capitalize} mongrel"
@@ -40,17 +40,17 @@ module Webistrano
         
         namespace :deploy do
           task :restart, :roles => :app, :except => { :no_release => true } do
-            webistrano.mongrel.stop
+            capsize.mongrel.stop
             sleep(5)
-            webistrano.mongrel.start
+            capsize.mongrel.start
           end
           
           task :start, :roles => :app, :except => { :no_release => true } do
-            webistrano.mongrel.start
+            capsize.mongrel.start
           end
           
           task :stop, :roles => :app, :except => { :no_release => true } do
-            webistrano.mongrel.stop
+            capsize.mongrel.stop
           end
         end
       EOS

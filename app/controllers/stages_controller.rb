@@ -3,7 +3,7 @@ class StagesController < ApplicationController
   before_filter :load_project
   before_filter :ensure_can_access_project
   before_filter :ensure_can_edit_project, :except => [:dashboard, :index, :show]
-  
+
   # GET /projects/1/stages.xml
   def index
     @stages = current_project.stages
@@ -16,9 +16,9 @@ class StagesController < ApplicationController
   # GET /projects/1/stages/1.xml
   def show
     @stage = current_project.stages.find(params[:id])
-    @task_list = [['All tasks: ', '']] + @stage.list_tasks.collect{|task| [task[:name], task[:name]]}.sort()
+    @task_list = [['All tasks: ', '']] + @stage.list_tasks
     @can_edit_project = current_user.can_edit?(@project)
-    
+
     respond_to do |format|
       format.html # show.rhtml
       format.xml  { render :xml => @stage.to_xml }
@@ -34,13 +34,13 @@ class StagesController < ApplicationController
   def edit
     @stage = current_project.stages.find(params[:id])
   end
-  
+
   # GET /projects/1/stages/1/tasks
   # GET /projects/1/stages/1/tasks.xml
   def tasks
     @stage = current_project.stages.find(params[:id])
     @tasks = @stage.list_tasks
-    
+
     respond_to do |format|
       format.html # tasks.rhtml
       format.xml  { render :xml => @tasks.to_xml }
@@ -68,7 +68,7 @@ class StagesController < ApplicationController
   # PUT /projects/1/stages/1.xml
   def update
     @stage = current_project.stages.find(params[:id])
-    
+
     respond_to do |format|
       if @stage.update_attributes(params[:stage])
         flash[:notice] = 'Stage was successfully updated.'
@@ -93,7 +93,7 @@ class StagesController < ApplicationController
       format.xml  { head :ok }
     end
   end
-  
+
   # GET /projects/1/stages/1/capfile
   # GET /projects/1/stages/1/capifile.xml
   def capfile
@@ -104,7 +104,7 @@ class StagesController < ApplicationController
       format.xml  { render :xml => @stage.to_xml }
     end
   end
-  
+
   # GET | PUT /projects/1/stages/1/recipes
   # GET /projects/1/stages/1/recipes.xml
   def recipes
@@ -120,5 +120,5 @@ class StagesController < ApplicationController
       end
     end
   end
-  
+
 end

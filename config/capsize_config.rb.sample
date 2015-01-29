@@ -1,9 +1,9 @@
 # 
 #  Example Webistarno configuration
 #  
-#  copy this file to config/webistrano.rb and edit
+#  copy this file to config/capsize.rb and edit
 #
-WebistranoConfig = {
+CapsizeConfig = {
 
   # secret password for session HMAC
   :session_secret => 'please choose a long random string, min. 30 characters',
@@ -23,11 +23,11 @@ WebistranoConfig = {
     #:authentication  => :login
   },
   
-  # Sender address for Webistrano emails
-  :webistrano_sender_address => "webistrano@example.com",
+  # Sender address for Capsize emails
+  :capsize_sender_address => "capsize@example.com",
   
-  # Sender and recipient for Webistrano exceptions
+  # Sender and recipient for Capsize exceptions
   :exception_recipients => "team@example.com",
-  :exception_sender_address => "webistrano@example.com"
+  :exception_sender_address => "capsize@example.com"
 
 }

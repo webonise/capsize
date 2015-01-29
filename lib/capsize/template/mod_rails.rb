@@ -1,8 +1,8 @@
-module Webistrano
+module Capsize
   module Template
     module ModRails
       
-      CONFIG = Webistrano::Template::Rails::CONFIG.dup.merge({
+      CONFIG = Capsize::Template::Rails::CONFIG.dup.merge({
         :mod_rails_restart_file => 'Absolut path to restart.txt',
         :apache_init_script => 'Absolut path to Apache2.2 init script, e.g. /etc/init.d/apache22'
       }).freeze
@@ -10,16 +10,16 @@ module Webistrano
       DESC = <<-'EOS'
         Template for use of mod_rails / Passenger projects that use Apache2.2 with mod_rails.
         Defines the 'mod_rails_restart_file' configuration parameter that should point
-        to /your/app/tmp/restart.txt. Further if you want Webistrano to control Apache2.2,
+        to /your/app/tmp/restart.txt. Further if you want Capsize to control Apache2.2,
         you need to set 'apache_init_script'.
 
         Overrides the deploy.restart, deploy.start, and deploy.stop tasks to use
         mod_rails commands instead.
       EOS
       
-      TASKS = Webistrano::Template::Base::TASKS + <<-'EOS'
+      TASKS = Capsize::Template::Base::TASKS + <<-'EOS'
       
-        namespace :webistrano do
+        namespace :capsize do
           namespace :mod_rails do
             desc "start mod_rails & Apache"
             task :start, :roles => :app, :except => { :no_release => true } do
@@ -44,15 +44,15 @@ module Webistrano
         
         namespace :deploy do
           task :restart, :roles => :app, :except => { :no_release => true } do
-            webistrano.mod_rails.restart
+            capsize.mod_rails.restart
           end
           
           task :start, :roles => :app, :except => { :no_release => true } do
-            webistrano.mod_rails.start
+            capsize.mod_rails.start
           end
           
           task :stop, :roles => :app, :except => { :no_release => true } do
-            webistrano.mod_rails.stop
+            capsize.mod_rails.stop
           end
         end
       EOS

@@ -5,7 +5,7 @@
 
 # confid files
 config/*.yml
-config/webistrano_config.rb
+config/capsize_config.rb
 
 # mac files
 *~
@@ -17,3 +17,6 @@ config/webistrano_config.rb
 db/*.sqlite3
 log/*.log
 tmp/
+
+#capfiles
+capsize_projects

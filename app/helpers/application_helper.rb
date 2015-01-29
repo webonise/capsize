@@ -120,10 +120,14 @@ module ApplicationHelper
     end
   end
 
-  
+
   def ensure_can_access_project(project=nil)
     project ||= @project
     current_user.admin? || current_user.can_manage_projects? || current_user.projects.include?(project)
   end
-    
+
+  def rooted(dir)
+    Rails.root.join("capsize_projects/" + dir)
+  end
+
 end

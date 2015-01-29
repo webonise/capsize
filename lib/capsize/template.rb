@@ -1,0 +1,7 @@
+require "capsize/template/base"
+require "capsize/template/rails"
+require "capsize/template/mongrel_rails"
+require "capsize/template/thin_rails"
+require "capsize/template/pure_file"
+require "capsize/template/mod_rails"
+require "capsize/template/unicorn"

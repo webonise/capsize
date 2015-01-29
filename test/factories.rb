@@ -1,27 +1,27 @@
 module Factories
-  
+
   # returns a random string for testing
   def random_string(size=10)
     rand_array = []
     "a".upto("z"){|e| rand_array << e}
-    
+
     result = ""
     size.times do
       result += (rand_array[rand(rand_array.size) - 1])
-    end 
-    
+    end
+
     return result
   end
-  
+
   def create_new_host(options = {})
     options = {
       :name => "#{(rand(999) % 255)}.#{(rand(999) % 255)}.#{(rand(999) % 255)}.#{(rand(999) % 255)}"
     }.update(options)
-  
+
     h = Host.new
     h.name = options[:name]
     h.save!
-  
+
     return h
   end
 
@@ -31,14 +31,14 @@ module Factories
       :description => random_string,
       :template => 'rails'
     }.update(options)
-  
+
     p = Project.new
     p.name = options[:name]
     p.description = options[:description]
     p.template = options[:template]
     p.save!
-  
-  
+
+
     return p
   end
 
@@ -47,32 +47,14 @@ module Factories
       :project => create_new_project,
       :name => random_string
     }.update(options)
-  
+
     s = Stage.new
     s.name = options[:name]
     s.project = options[:project]
     s.save!
-  
+
     return s
   end
-
-  # def create_new_role(options = {})
-  #   options = {
-  #     :stage => create_new_stage,
-  #     :host => create_new_host,
-  #     :name => random_string,
-  #     :primary => 0
-  #   }.update(options)
-  #   
-  #   r = Role.new
-  #   r.name = options[:name]
-  #   r.stage = options[:stage]
-  #   r.host = options[:host]
-  #   r.primary = options[:primary]
-  #   r.save!
-  #   
-  #   return r
-  # end
 
   def create_new_project_configuration(options = {})
     options = {
@@ -81,15 +63,15 @@ module Factories
       :value => random_string,
       :prompt_on_deploy => 0
     }.update(options)
-  
+
     pc = ProjectConfiguration.new
     pc.name = options[:name]
     pc.value = options[:value]
     pc.prompt_on_deploy = options[:prompt_on_deploy]
     pc.project = options[:project]
-  
+
     pc.save!
-  
+
     return pc
   end
 
@@ -100,15 +82,15 @@ module Factories
       :value => random_string,
       :prompt_on_deploy => 0
     }.update(options)
-  
+
     sc = StageConfiguration.new
     sc.name = options[:name]
     sc.value = options[:value]
     sc.prompt_on_deploy = options[:prompt_on_deploy]
     sc.stage = options[:stage]
-  
+
     sc.save!
-  
+
     return sc
   end
 
@@ -121,16 +103,16 @@ module Factories
       :no_release => 0,
       :no_symlink => 0
     }.update(options)
-  
+
     r = Role.new
     r.name = options[:name]
     r.host = options[:host]
     r.stage = options[:stage]
     r.primary = options[:primary]
     r.no_release = options[:no_release]
-  
+
     r.save!
-  
+
     return r
   end
 
@@ -140,7 +122,7 @@ module Factories
       :email => "#{random_string}@#{random_string}.com",
       :password => random_string
     }.update(options)
-  
+
     u = User.new
     u.login = options[:login]
     u.email = options[:email]
@@ -148,7 +130,7 @@ module Factories
     u.password_confirmation = options[:login]
 
     u.save!
-  
+
     return u
   end
 
@@ -167,7 +149,7 @@ module Factories
       :excluded_host_ids => [],
       :override_locking => false
     }.update(options)
-  
+
     d = Deployment.new
     d.task = options[:task]
     d.stage = options[:stage]
@@ -182,8 +164,9 @@ module Factories
     d.override_locking = options[:override_locking]
 
     d.roles << options[:roles] unless options[:roles].empty?
+    d.roles << options[:stage].roles if options[:stage].roles.any?
     d.save!
-  
+
     return d
   end
 
@@ -193,14 +176,14 @@ module Factories
       :description => random_string,
       :body => random_string
     }.update(options)
-  
+
     r = Recipe.new
     r.name = options[:name]
     r.description = options[:description]
     r.body = options[:body]
 
     r.save!
-  
+
     return r
   end
 
@@ -211,7 +194,7 @@ module Factories
       :admin => 0,
       :password => random_string
     }.update(options)
-  
+
     u = User.new
     u.login = options[:login]
     u.email = options[:email]
@@ -220,10 +203,10 @@ module Factories
     u.password_confirmation = options[:password]
 
     u.save!
-  
+
     return u
   end
-  
+
   def create_stage_with_role
     stage = create_new_stage
     host = create_new_host

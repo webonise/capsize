@@ -1,10 +1,12 @@
-# Webistranos implementation of Capistrano::Configuration
-# uses a Webistrano::Logger as the logger in order to log to the DB
-module Webistrano
+# Capsizes implementation of Capistrano::Configuration
+# uses a Capsize::Logger as the logger in order to log to the DB
+require 'capistrano/configuration'
+
+module Capsize
   class Configuration < Capistrano::Configuration
-      
+
     attr_accessor :logger
-      
+
     # default callback to handle all output that
     # the other callbacks not explicitly handle.
     def self.default_io_proc
