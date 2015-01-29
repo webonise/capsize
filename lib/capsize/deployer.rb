@@ -255,10 +255,12 @@ module Capsize
         deployment.stage.project.configuration_parameters.each do |parameter|
           f.puts "set :#{parameter.name}, '#{parameter.value}'"
         end
-          f.puts "after :#{deployment.stage.name}, :custom_log"
+        f.puts "after :#{deployment.stage.name}, :custom_log"
         %w{deploy:started deploy:updated deploy:published deploy:finished}.each do |task|
-          # f.puts before_flow(task)
           f.puts after_flow(task)
+        end
+        deployment.stage.recipes.each do |recipe|
+          f.puts recipe.body
         end
       end
     end
@@ -280,10 +282,6 @@ module Capsize
       require "capistrano/deploy"
       require 'capistrano/rvm'
       require 'capistrano/bundler'
-    end
-
-    def before_flow(task)
-      "before '#{task}', :custom_log"
     end
 
     def after_flow(task)
