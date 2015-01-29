@@ -11,10 +11,13 @@ end
 task :custom_log do
   deployment = Deployment.find(ENV['DEPLOYMENT_ID'])
   $stdout.rewind
+
   $stdout.each_line do |line|
-    deployment.log = (deployment.log || '') + line
+    deployment.log = (deployment.log || '') + line if $stdout.lineno > ENV['LINE_NO'].to_i
+    deployment.save!
   end
-  deployment.save!
+
+  ENV['LINE_NO'] = $stdout.lineno.to_s
   Rake::Task["custom_log"].reenable
 end
 
