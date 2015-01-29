@@ -295,6 +295,7 @@ module Capsize
       $stdout = @browser_log
       $stdout.sync = true
       ENV['DEPLOYMENT_ID'] = deployment.id.to_s
+      ENV['LINE_NO'] = '0'
     end
 
     def close_output
