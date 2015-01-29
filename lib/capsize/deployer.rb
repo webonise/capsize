@@ -71,11 +71,10 @@ module Capsize
       capsize_setup(deployment.stage)
       set_output
       status = catch(:abort_called_by_capistrano){
-        Dir.glob('capistrano/tasks/*.rake').each { |r| import r }
         Capistrano::Application.invoke("#{deployment.stage.name}")
         Capistrano::Application.invoke(options[:actions])
       }
-      log_output
+      close_output
 
       if status == :capistrano_abort
         false
@@ -256,6 +255,11 @@ module Capsize
         deployment.stage.project.configuration_parameters.each do |parameter|
           f.puts "set :#{parameter.name}, '#{parameter.value}'"
         end
+          f.puts "after :#{deployment.stage.name}, :custom_log"
+        %w{deploy:started deploy:updated deploy:published deploy:finished}.each do |task|
+          f.puts before_flow(task)
+          f.puts after_flow(task)
+        end
       end
     end
 
@@ -278,18 +282,23 @@ module Capsize
       require 'capistrano/bundler'
     end
 
+    def before_flow(task)
+      "before '#{task}', :custom_log"
+    end
+
+    def after_flow(task)
+      "after '#{task}', :custom_log"
+    end
+
     def set_output
       @browser_log = StringIO.new
       $stdout = @browser_log
       $stdout.sync = true
+      ENV['DEPLOYMENT_ID'] = deployment.id.to_s
     end
 
-    def log_output
+    def close_output
       $stdout = STDOUT
-      @browser_log.rewind
-      @browser_log.each_line do |line|
-        deployment.log = (deployment.log || '') + line
-      end
     end
 
   end
