@@ -9,15 +9,16 @@ namespace :load do
 end
 
 task :custom_log do
-  deployment = Deployment.find(ENV['DEPLOYMENT_ID'])
+  deployment = Deployment.find(ENV['deployment_id'])
+
+  line_number = $stdout.lineno
   $stdout.rewind
 
   $stdout.each_line do |line|
-    deployment.log = (deployment.log || '') + line if $stdout.lineno > ENV['LINE_NO'].to_i
-    deployment.save!
-  end
+    deployment.log = (deployment.log || '') + line if $stdout.lineno > line_number
+  end  
+  deployment.save!
 
-  ENV['LINE_NO'] = $stdout.lineno.to_s
   Rake::Task["custom_log"].reenable
 end
 
