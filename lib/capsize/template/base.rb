@@ -3,16 +3,18 @@ module Capsize
     module Base
       CONFIG = {
         :application => 'your_app_name',
-        :scm => 'subversion',
-        :deploy_via => ':checkout',
-        :scm_username => 'your_SVN_user',
-        :scm_password => 'your_SVN_password',
-        :user => 'deployment_user(SSH login)',
-        :password => 'deployment_user(SSH user) password',
-        :runner => 'user to run as with sudo',
-        :use_sudo => 'true',
         :deploy_to => '/path/to/deployment_base',
-        :repo_url => 'https://svn.example.com/project/trunk'
+        :scm => 'git',
+        :user => 'deployment_user(SSH login)',
+        :repo_url => 'https://svn.example.com/project/trunk',
+        :linked_files => %w{},
+        :linked_dirs => %w{},
+        :branch => 'master',
+        :keep_releases => 5,
+        :tmp_dir => '/tmp',
+        :pty => false,
+        :log_level => :debug,
+        :format => :pretty
       }.freeze
 
       DESC = <<-'EOS'

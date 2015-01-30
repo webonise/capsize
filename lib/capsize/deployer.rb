@@ -268,6 +268,9 @@ module Capsize
         stage.roles.each do |role|
           f.puts "role :#{role.name}, %w{#{find_host_user(stage.project)}@#{role.host.name}}"
         end
+        stage.configuration_parameters.each do |parameter|
+          f.puts "set :#{parameter.name}, '#{parameter.value}'"
+        end
       end
     end
 
