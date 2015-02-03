@@ -78,8 +78,8 @@ module Www
 
     config.after_initialize do
       require 'capistrano/all'
-      Rake.application = Capistrano::Application.new
-      Rake.application.init
+      cap = Capistrano::Application.new
+      config.capistrano_application = cap
     end
 
   end

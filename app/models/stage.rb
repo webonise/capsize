@@ -18,7 +18,7 @@ class Stage < ActiveRecord::Base
 
   # fake attr (Hash) that hold info why deployment is not possible
   # (think model.errors lite)
-  attr_accessor :deployment_problems, :task_list
+  attr_accessor :deployment_problems
 
   EMAIL_BASE_REGEX = '([^@\s\,\<\>\?\&\;\:]+)@((?:[\-a-z0-9]+\.)+[a-z]{2,})'
   EMAIL_REGEX = /^#{EMAIL_BASE_REGEX}$/i
@@ -130,8 +130,11 @@ class Stage < ActiveRecord::Base
 
   # returns a lists of all availabe tasks for this stage
   def list_tasks
-    Rake.application.load_rakefile
-    Rake.application.tasks
+    cap = Rails.configuration.capistrano_application
+    Rake.application = cap
+    cap.init
+    cap.load_rakefile
+    cap.tasks
   end
 
   def lock

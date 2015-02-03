@@ -16,7 +16,7 @@ module Capsize
 
     attr_accessor :logger
 
-    attr_reader :browser_log, :task_list
+    attr_reader :browser_log
 
     def initialize(deployment)
       @options = {
@@ -152,9 +152,6 @@ module Capsize
         %w{deploy:started deploy:updated deploy:published deploy:finished}.each do |task|
           f.puts after_flow(task)
         end
-        deployment.stage.recipes.each do |recipe|
-          f.puts recipe.body
-        end
       end
     end
 
@@ -165,6 +162,9 @@ module Capsize
         end
         @stage.configuration_parameters.each do |parameter|
           f.puts "set :#{parameter.name}, '#{parameter.value}'"
+        end
+        deployment.stage.recipes.each do |recipe|
+          f.puts recipe.body
         end
       end
     end
