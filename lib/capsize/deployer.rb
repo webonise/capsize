@@ -16,7 +16,7 @@ module Capsize
 
     attr_accessor :logger
 
-    attr_reader :browser_log
+    attr_reader :browser_log, :task_list
 
     def initialize(deployment)
       @options = {
@@ -28,16 +28,11 @@ module Capsize
       }
 
       @deployment = deployment
-
-      if(@deployment.send(:task) && !@deployment.new_record?)
-        # a read deployment
-        @logger = Capsize::Logger.new(deployment)
-        @logger.level = Capsize::Logger::TRACE
-        validate
-      else
-        # a fake deployment in order to access tasks
-        @logger = Capsize::Logger.new(deployment)
-      end
+      @stage = deployment.stage
+      @project = deployment.stage.project
+      @project_name = deployment.stage.project.capsize_project_name
+      @task_list =[]
+      list_tasks
     end
 
     # validates this instance
@@ -61,26 +56,21 @@ module Capsize
     end
 
     def execute!
-      config = instantiate_configuration
-      set_project_and_stage_names(config)
-      find_or_create_project_dir(config.fetch(:capsize_project))
-      write_deploy(config)
-      write_stage(deployment.stage)
+      find_or_create_project_dir
+      write_deploy
+      write_stage
 
       load_requirements
-      capsize_setup(deployment.stage)
+      capsize_setup(@stage)
       set_output
       status = catch(:abort_called_by_capistrano){
-        Capistrano::Application.invoke("#{deployment.stage.name}")
+        Capistrano::Application.invoke("#{@stage.name}")
         Capistrano::Application.invoke(options[:actions])
       }
       close_output
 
-      if status == :capistrano_abort
-        false
-      else
-        config
-      end
+      status != :capistrano_abort
+
     rescue Exception => error
       handle_error(error)
       return false
@@ -102,95 +92,6 @@ module Capsize
     def save_pid
       @deployment.pid = Process.pid
       @deployment.save!
-    end
-
-    # override in order to use DB logger
-    def instantiate_configuration #:nodoc:
-      config = Capsize::Configuration.new
-      config.logger = logger
-      config
-    end
-
-    def set_up_config(config)
-      set_project_and_stage_names(config)
-      set_stage_configuration(config)
-      set_stage_roles(config)
-
-      load_stage_custom_recipes(config)
-      config
-    end
-
-    # sets the Capsize::Logger instance on the configuration,
-    # so that it gets used by the SCM#logger
-    def set_capsize_logger(config)
-      config.set :logger, logger
-    end
-
-    # sets the stage configuration on the Capistrano configuration
-    def set_stage_configuration(config)
-      deployment.stage.non_prompt_configurations.each do |effective_conf|
-        value = resolve_references(config, effective_conf.value)
-        config.set effective_conf.name.to_sym, Deployer.type_cast(value)
-      end
-      deployment.prompt_config.each do |k, v|
-        v = resolve_references(config, v)
-        config.set k.to_sym, Deployer.type_cast(v)
-      end
-    end
-
-    def resolve_references(config, value)
-      value = value.dup.to_s
-      references = value.scan(/#\{([a-zA-Z_]+)\}/)
-      unless references.blank?
-        references.flatten.compact.each do |ref|
-          conf_param_refence = deployment.effective_and_prompt_config.select{|conf| conf.name.to_s == ref}.first
-          if conf_param_refence
-            value.sub!(/\#\{#{ref}\}/, conf_param_refence.value) if conf_param_refence.value.present?
-          elsif config.exists?(ref)
-            build_in_value = config.fetch(ref)
-            value.sub!(/\#\{#{ref}\}/, build_in_value.to_s)
-          end
-        end
-      end
-      value
-    end
-
-    # load the project's custom tasks
-    def load_project_template_tasks(config)
-      config.load(:string => deployment.stage.project.tasks)
-    end
-
-    # load custom project recipes
-    def load_stage_custom_recipes(config)
-      begin
-        deployment.stage.recipes.ordered.each do |recipe|
-          logger.info("loading stage recipe '#{recipe.name}' ")
-          config.load(:string => recipe.body)
-        end
-      rescue SyntaxError, LoadError => e
-        raise Capistrano::Error, "Problem loading custom recipe: #{e.message}"
-      end
-    end
-
-    # sets the roles on the Capistrano configuration
-    def set_stage_roles(config)
-      deployment.deploy_to_roles.each do |r|
-
-        # create role attributes hash
-        role_attr = r.role_attribute_hash
-
-        if role_attr.blank?
-          config.role r.name, r.hostname_and_port
-        else
-          config.role r.name, r.hostname_and_port, role_attr
-        end
-      end
-    end
-
-    # sets capsize_project and capsize_stage to corrosponding values
-    def set_project_and_stage_names(config)
-      config.set(:capsize_project, deployment.stage.project.capsize_project_name)
-      config.set(:capsize_stage, deployment.stage.capsize_stage_name)
     end
 
     # casts a given string to the correct Ruby value
@@ -242,20 +143,25 @@ module Capsize
 
     # returns a list of all tasks defined for this deployer
     def list_tasks
-      [{:name => "deploy:rollback", :description => nil}, {:name => "deploy:cleanup", :description => nil}]
+      cap = Capistrano::Application.new
+      Rake.application = cap
+      cap.init
+      cap.load_rakefile
+      Rake.application.tasks.each do |task|
+        @task_list << task
+      end
     end
 
-    def find_or_create_project_dir(project)
-      FileUtils.mkdir_p(rooted("#{project}"))
+    def find_or_create_project_dir
+      FileUtils.mkdir_p(rooted("#{@project_name}"))
     end
 
-    def write_deploy(config)
-      File.open(rooted("#{config.fetch(:capsize_project)}/deploy.rb"), 'w+') do |f|
-        f.puts "stages = '#{deployment.stage.name}'"
-        deployment.stage.project.configuration_parameters.each do |parameter|
+    def write_deploy
+      File.open(rooted("#{@project_name}/deploy.rb"), 'w+') do |f|
+        @project.configuration_parameters.each do |parameter|
           f.puts "set :#{parameter.name}, '#{parameter.value}'"
         end
-        f.puts "after :#{deployment.stage.name}, :custom_log"
+          f.puts "after :#{@stage.name}, :custom_log"
         %w{deploy:started deploy:updated deploy:published deploy:finished}.each do |task|
           f.puts after_flow(task)
         end
@@ -265,10 +171,13 @@ module Capsize
       end
     end
 
-    def write_stage(stage)
-      File.open(rooted("#{stage.project.capsize_project_name}/#{stage.name}.rb"), 'w+') do |f|
-        stage.roles.each do |role|
-          f.puts "role :#{role.name}, %w{#{find_host_user(stage.project)}@#{role.host.name}}"
+    def write_stage
+      File.open(rooted("#{@project_name}/#{@stage.name}.rb"), 'w+') do |f|
+        @stage.roles.each do |role|
+          f.puts "role :#{role.name}, %w{#{find_host_user(@project)}@#{role.host.name}}"
+        end
+        @stage.configuration_parameters.each do |parameter|
+          f.puts "set :#{parameter.name}, '#{parameter.value}'"
         end
       end
     end
