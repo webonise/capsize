@@ -1,5 +1,5 @@
 desc 'copy recipes from the capistrano2/webistrano database to this one'
-task :copy_recipe => :environment do
+task :copy_recipes => :environment do
   require "active_record"
 
   class Recipe < ActiveRecord::Base
@@ -8,11 +8,12 @@ task :copy_recipe => :environment do
   recipe_collection = []
 
   Recipe.establish_connection{
-    :webistrano_development
+    :webistrano_production
   }
 
   Recipe.all.each do |recipe|
     recipe_collection << recipe
+    Recipe.destroy(recipe.id)
   end
 
   recipe_collection.each do |r|
@@ -28,8 +29,7 @@ def replace_callbacks(r)
   end
 end
 
-CALLBACK_HASH = { "deploy:update_code" => "deploy:updated",
-                  "deploy:restart" => "deploy:restart",
-                  "deploy:create_symlink" => "deploy:create_symlink",
+CALLBACK_HASH = { "deploy:update_code" => "deploy:updating",
                   "deploy:finalize_update" => "deploy:updated",
+                  "deploy:restart" => "deploy:finished"
                 }
