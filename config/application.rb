@@ -76,6 +76,12 @@ module Www
         :secret => CapsizeConfig[:session_secret]
     }
 
+    config.after_initialize do
+      require 'capistrano/all'
+      Rake.application = Capistrano::Application.new
+      Rake.application.init
+    end
+
   end
 end
 

@@ -130,10 +130,7 @@ class Stage < ActiveRecord::Base
 
   # returns a lists of all availabe tasks for this stage
   def list_tasks
-    cap = Capistrano::Application.new
-    Rake.application = cap
-    cap.init
-    cap.load_rakefile
+    Rake.application.load_rakefile
     Rake.application.tasks
   end
 

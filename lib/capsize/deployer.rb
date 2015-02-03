@@ -31,8 +31,6 @@ module Capsize
       @stage = deployment.stage
       @project = deployment.stage.project
       @project_name = deployment.stage.project.capsize_project_name
-      @task_list =[]
-      list_tasks
     end
 
     # validates this instance
@@ -138,17 +136,6 @@ module Capsize
         logger.important "authentication failed for `#{error.message}'"
       else
         logger.important(error.message + "\n" + error.backtrace.join("\n"))
-      end
-    end
-
-    # returns a list of all tasks defined for this deployer
-    def list_tasks
-      cap = Capistrano::Application.new
-      Rake.application = cap
-      cap.init
-      cap.load_rakefile
-      Rake.application.tasks.each do |task|
-        @task_list << task
       end
     end
 
