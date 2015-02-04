@@ -31,6 +31,10 @@ module Capsize
       @stage = deployment.stage
       @project = deployment.stage.project
       @project_name = deployment.stage.project.capsize_project_name
+      @logger = Capsize::Logger.new(@deployment)
+      @logger.level = Capsize::Logger::TRACE
+
+      validate if deployment.new_record?
     end
 
     # validates this instance
@@ -72,17 +76,6 @@ module Capsize
     rescue Exception => error
       handle_error(error)
       return false
-    end
-
-
-    # save the revision in the DB if possible
-    def save_revision(config)
-      if config.fetch(:real_revision)
-        @deployment.revision = config.fetch(:real_revision)
-        @deployment.save!
-      end
-    rescue => e
-      logger.important "Could not save revision: #{e.message}"
     end
 
     # saves the process ID of this running deployment in order
@@ -135,7 +128,7 @@ module Capsize
       when Net::SSH::AuthenticationFailed
         logger.important "authentication failed for `#{error.message}'"
       else
-        logger.important(error.message + "\n" + error.backtrace.join("\n"))
+        logger.important error.message + "\n" + error.backtrace.join("\n")
       end
     end
 
@@ -144,9 +137,10 @@ module Capsize
     end
 
     def write_deploy
+      @logger.info("Writing deploy configuration to #{@project_name}/deploy.rb")
       File.open(rooted("#{@project_name}/deploy.rb"), 'w+') do |f|
         @project.configuration_parameters.each do |parameter|
-          f.puts "set :#{parameter.name}, '#{parameter.value}'"
+          f.puts "set :#{parameter.name}, \"#{parameter.value}\""
         end
           f.puts "after :#{@stage.name}, :custom_log"
         %w{deploy:started deploy:updated deploy:published deploy:finished}.each do |task|
@@ -156,12 +150,13 @@ module Capsize
     end
 
     def write_stage
+      @logger.info("Writing stage configuration to #{@project_name}/#{@stage.name}.rb")
       File.open(rooted("#{@project_name}/#{@stage.name}.rb"), 'w+') do |f|
         @stage.roles.each do |role|
           f.puts "role :#{role.name}, %w{#{find_host_user(@project)}@#{role.host.name}}"
         end
         @stage.configuration_parameters.each do |parameter|
-          f.puts "set :#{parameter.name}, '#{parameter.value}'"
+          f.puts "set :#{parameter.name}, \"#{parameter.value}\""
         end
         deployment.stage.recipes.each do |recipe|
           f.puts recipe.body
