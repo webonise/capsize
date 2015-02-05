@@ -67,6 +67,7 @@ module Capsize
       set_output
       status = catch(:abort_called_by_capistrano){
         Capistrano::Application.invoke("#{@stage.name}")
+        after_stage_invokations
         Capistrano::Application.invoke(options[:actions])
       }
       close_output
@@ -173,6 +174,14 @@ module Capsize
       require "capistrano/deploy"
       require 'capistrano/rvm'
       require 'capistrano/bundler'
+      require 'capistrano/rails/migrations'
+      require 'capistrano/rails/assets'
+    end
+
+    def after_stage_invokations
+      Capistrano::Application.invoke("rvm:hook")
+      Capistrano::Application.invoke("rvm:check")
+      Capistrano::Application.invoke("bundler:map_bins")
     end
 
     def after_flow(task)

@@ -122,6 +122,7 @@ PLATFORMS
 
 DEPENDENCIES
   capistrano
+  capistrano-bundler (~> 1.1.2)
   capistrano-rails
   capistrano-rvm
   highline
