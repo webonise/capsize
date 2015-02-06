@@ -131,12 +131,18 @@ module Capsize
 
       return nil if val.nil?
       val.strip!
+      return set_string_parameter(name, val) if val =~ /\A\d+\D+/
+
       case val[0]
       when ":", "%", "[", "{", /\d/
         "set :#{name}, #{val}"
       else
-        "set :#{name}, '#{val}'"
+        set_string_parameter(name, val)
       end
+    end
+
+    def set_string_parameter(name, val)
+      "set :#{name}, '#{val}'"
     end
 
     # override in order to use DB logger
