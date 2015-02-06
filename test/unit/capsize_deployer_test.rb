@@ -193,17 +193,17 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
     assert stage_with_prompt.deployment_possible?, stage_with_prompt.deployment_problems.inspect
 
     # add a config value that wants a promp
-    stage_with_prompt.configuration_parameters.build(:name => 'password', :prompt_on_deploy => 1).save!
+    stage_with_prompt.configuration_parameters.create(:name => 'password', :prompt_on_deploy => 1)
     assert !stage_with_prompt.prompt_configurations.empty?
 
     # create the deployment
-    deployment = create_new_deployment(:stage => stage_with_prompt, :task => 'deploy', :prompt_config => {:password => '123'})
+    deployment = create_new_deployment(:stage => stage_with_prompt, :task => 'deploy', :prompt_config => {'password' => 'pass1234'})
 
     write_deployer_files(deployment)
-    file = File.open(rooted("#{stage_with_prompt.project.capsize_project_name}/#{stage_with_prompt.name}.rb"))
+    file = File.open(rooted("#{@project.capsize_project_name}/#{stage_with_prompt.name}.rb"))
     contents = file.read
 
-    assert_match(/set :password, "123"/, contents)
+    assert_match(/set :password, 'pass1234'/, contents)
     remove_directory(stage_with_prompt.project.capsize_project_name)
   end
 
@@ -259,6 +259,24 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
     deployer.invoke_task!
     assert File.exist?(rooted("#{@deployment.stage.project.capsize_project_name}/#{@deployment.stage.name}.rb"))
     remove_directory(@deployment.stage.project.capsize_project_name)
+  end
+
+  def test_configuration_parameters_written_correctly
+    deployment = create_new_deployment(:stage => @stage)
+
+    @stage.project.configuration_parameters.create(:name => 'app_name', :value => 'madeupname')
+    @stage.project.configuration_parameters.create(:name => 'keep_releases', :value => '8')
+    @stage.project.configuration_parameters.create(:name => 'linked_dirs', :value => '%w{ made_up_dir }')
+
+    write_deployer_files(deployment)
+    file = File.open(rooted("#{@stage.project.capsize_project_name}/deploy.rb"))
+    contents = file.read
+
+    assert_match /set :app_name, 'madeupname'/, contents
+    assert_match /set :keep_releases, 8/, contents
+    assert_match /set :linked_dirs, %w{ made_up_dir }/, contents
+
+    remove_directory(@stage.project.capsize_project_name)
   end
 
   def test_output_logs_in_browser_log
