@@ -124,13 +124,18 @@ module Capsize
     end
 
     def print_parameter(parameter)
+      name = parameter.name
       val = parameter.value
+
+      val = deployment.prompt_config[name] if parameter.prompt?
+
+      return nil if val.nil?
       val.strip!
       case val[0]
       when ":", "%", "[", "{", /\d/
-        "set :#{parameter.name}, #{val}"
+        "set :#{name}, #{val}"
       else
-        "set :#{parameter.name}, '#{val}'"
+        "set :#{name}, '#{val}'"
       end
     end
 
