@@ -123,6 +123,17 @@ module Capsize
       val.index(':') == 0 && val.scan(":").size > 1
     end
 
+    def print_parameter(parameter)
+      val = parameter.value
+      val.strip!
+      case val[0]
+      when ":", "%", "[", "{", /\d/
+        "set :#{parameter.name}, #{val}"
+      else
+        "set :#{parameter.name}, '#{val}'"
+      end
+    end
+
     # override in order to use DB logger
     def handle_error(error) #:nodoc:
       case error
@@ -141,9 +152,9 @@ module Capsize
       @logger.info("Writing deploy configuration to #{@project_name}/deploy.rb")
       File.open(rooted("#{@project_name}/deploy.rb"), 'w+') do |f|
         @project.configuration_parameters.each do |parameter|
-          f.puts "set :#{parameter.name}, \"#{parameter.value}\""
+          f.puts print_parameter(parameter)
         end
-          f.puts "after :#{@stage.name}, :custom_log"
+          f.puts after_flow(@stage.name)
         %w{deploy:started deploy:updated deploy:published deploy:finished}.each do |task|
           f.puts after_flow(task)
         end
@@ -157,7 +168,7 @@ module Capsize
           f.puts "role :#{role.name}, %w{#{find_host_user(@project)}@#{role.host.name}}"
         end
         @stage.configuration_parameters.each do |parameter|
-          f.puts "set :#{parameter.name}, \"#{parameter.value}\""
+          f.puts print_parameter(parameter)
         end
         deployment.stage.recipes.each do |recipe|
           f.puts recipe.body
