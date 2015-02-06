@@ -16,7 +16,7 @@ task :custom_log do
 
   $stdout.each_line do |line|
     deployment.log = (deployment.log || '') + line if $stdout.lineno > line_number
-  end  
+  end
   deployment.save!
 
   Rake::Task["custom_log"].reenable
@@ -33,5 +33,5 @@ def capsize_setup(stage)
     I18n.locale = fetch(:locale, :en)
     configure_backend
   end
-  require 'capistrano/dotfile'
 end
+require 'capistrano/dotfile'

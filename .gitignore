@@ -20,3 +20,10 @@ tmp/
 
 #capfiles
 capsize_projects
+
+#mysqldump files
+*.sql
+
+#coverage
+coverage/
+.simplecov

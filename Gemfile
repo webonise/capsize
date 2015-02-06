@@ -15,6 +15,7 @@ gem 'net-ssh-gateway', :require => 'net/ssh/gateway'
 gem 'capistrano'
 gem 'capistrano-rails'
 gem 'capistrano-rvm'
+gem 'capistrano-bundler', '~> 1.1.2'
 gem 'highline'
 gem 'open4'
 gem 'syntax'
@@ -50,4 +51,5 @@ gem 'prototype_legacy_helper', '0.0.0', :git => 'git://github.com/rails/prototyp
 
 group :test do
   gem "mocha", "0.13.2", :require => false
+  gem 'simplecov', :require => false
 end

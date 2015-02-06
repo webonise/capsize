@@ -130,10 +130,11 @@ class Stage < ActiveRecord::Base
 
   # returns a lists of all availabe tasks for this stage
   def list_tasks
-    d = Deployment.new
-    d.stage = self
-    deployer = Capsize::Deployer.new(d)
-    deployer.list_tasks
+    cap = Rails.configuration.capistrano_application
+    Rake.application = cap
+    cap.init
+    cap.load_rakefile
+    cap.tasks
   end
 
   def lock
