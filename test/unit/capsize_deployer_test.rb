@@ -193,7 +193,7 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
     assert stage_with_prompt.deployment_possible?, stage_with_prompt.deployment_problems.inspect
 
     # add a config value that wants a promp
-    stage_with_prompt.configuration_parameters.create(:name => 'password', :prompt_on_deploy => 1)
+    stage_with_prompt.configuration_parameters.create!(:name => 'password', :prompt_on_deploy => 1)
     assert !stage_with_prompt.prompt_configurations.empty?
 
     # create the deployment
@@ -261,20 +261,33 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
     remove_directory(@deployment.stage.project.capsize_project_name)
   end
 
-  def test_configuration_parameters_written_correctly
-    deployment = create_new_deployment(:stage => @stage)
+  def test_string_parameters_written_correctly
+    deploy_configs = [ { :name => 'app_name', :value => 'madeupname' },
+                       { :name => 'deploy_to', :value => 'route66'},
+                       { :name => 'password', :value => '99redballoons'},
+                       { :name => 'super_password', :value => '456!!!what?i?s?8'}
+                     ]
+    contents = write_config_params(deploy_configs)
 
-    @stage.project.configuration_parameters.create(:name => 'app_name', :value => 'madeupname')
-    @stage.project.configuration_parameters.create(:name => 'keep_releases', :value => '8')
-    @stage.project.configuration_parameters.create(:name => 'linked_dirs', :value => '%w{ made_up_dir }')
+    deploy_configs.each do |config|
+      match_string_param(config[:name], config[:value], contents)
+    end
 
-    write_deployer_files(deployment)
-    file = File.open(rooted("#{@stage.project.capsize_project_name}/deploy.rb"))
-    contents = file.read
+    remove_directory(@stage.project.capsize_project_name)
+  end
 
-    assert_match /set :app_name, 'madeupname'/, contents
-    assert_match /set :keep_releases, 8/, contents
-    assert_match /set :linked_dirs, %w{ made_up_dir }/, contents
+  def test_non_string_parameters_written_correctly
+    deploy_configs = [ { :name => 'pty', :value => 'true' },
+                       { :name => 'keep_releases', :value => '80'},
+                       { :name => 'linked_dirs', :value => '%w{ made_up_dir }'},
+                       { :name => 'nothing', :value => 'nil' }
+                     ]
+
+    contents = write_config_params(deploy_configs)
+
+    deploy_configs.each do |config|
+      match_non_string_param(config[:name], config[:value], contents)
+    end
 
     remove_directory(@stage.project.capsize_project_name)
   end
@@ -291,6 +304,28 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
   end
 
   protected
+
+  def write_config_params(configs)
+    deployment = create_new_deployment(:stage => @stage)
+
+    configs.each do |config|
+      @stage.project.configuration_parameters.create(config)
+    end
+
+    write_deployer_files(deployment)
+    file = File.open(rooted("#{@stage.project.capsize_project_name}/deploy.rb"))
+    file.read
+  end
+
+  def match_string_param(name, value, contents)
+    assert_match /set :#{name}, '#{Regexp.quote(value)}'/, contents
+    assert_match /\nset :#{name}, '#{Regexp.quote(value)}'\n/m, contents
+  end
+
+  def match_non_string_param(name, value, contents)
+    assert_match /set :#{name}, #{Regexp.quote(value)}/, contents
+    assert_match /\nset :#{name}, #{Regexp.quote(value)}\n/m, contents
+  end
 
   def write_deployer_files(deployment)
     deployer = Capsize::Deployer.new(deployment)
