@@ -36,7 +36,7 @@ class Deployment < ActiveRecord::Base
       errors.add('stage', 'is not ready to deploy') unless self.stage.deployment_possible?
 
       self.stage.prompt_configurations.each do |conf|
-        errors.add('base', "Please fill out the parameter '#{conf.name}'") unless !prompt_config.blank? && !prompt_config[conf.name.to_sym].blank?
+        errors.add('base', "Please fill out the parameter '#{conf.name}'") unless !prompt_config.blank? && !prompt_config[conf.name].blank?
       end
 
       errors.add('lock', 'The stage is locked') if self.stage.locked? && !self.override_locking

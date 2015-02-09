@@ -123,6 +123,37 @@ module Capsize
       val.index(':') == 0 && val.scan(":").size > 1
     end
 
+    def print_parameter(parameter)
+      name = parameter.name
+      val = parameter.value
+
+      val = deployment.prompt_config[name] if parameter.prompt?
+
+      return nil if val.nil?
+      val.strip!
+      return set_string_parameter(name, val) if val =~ /\A\d+\D+/
+
+      case val
+      when 'true', 'false', 'nil'
+        return set_non_string_parameter(name, val)
+      end
+
+      case val[0]
+      when ":", "%", "[", "{", /\d/
+        set_non_string_parameter(name, val)
+      else
+        set_string_parameter(name, val)
+      end
+    end
+
+    def set_string_parameter(name, val)
+      "set :#{name}, '#{val}'"
+    end
+
+    def set_non_string_parameter(name, val)
+      "set :#{name}, #{val}"
+    end
+
     # override in order to use DB logger
     def handle_error(error) #:nodoc:
       case error
@@ -141,9 +172,9 @@ module Capsize
       @logger.info("Writing deploy configuration to #{@project_name}/deploy.rb")
       File.open(rooted("#{@project_name}/deploy.rb"), 'w+') do |f|
         @project.configuration_parameters.each do |parameter|
-          f.puts "set :#{parameter.name}, \"#{parameter.value}\""
+          f.puts print_parameter(parameter)
         end
-          f.puts "after :#{@stage.name}, :custom_log"
+          f.puts after_flow(@stage.name)
         %w{deploy:started deploy:updated deploy:published deploy:finished}.each do |task|
           f.puts after_flow(task)
         end
@@ -157,7 +188,7 @@ module Capsize
           f.puts "role :#{role.name}, %w{#{find_host_user(@project)}@#{role.host.name}}"
         end
         @stage.configuration_parameters.each do |parameter|
-          f.puts "set :#{parameter.name}, \"#{parameter.value}\""
+          f.puts print_parameter(parameter)
         end
         deployment.stage.recipes.each do |recipe|
           f.puts recipe.body
