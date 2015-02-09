@@ -13,4 +13,10 @@ namespace :test do
     t.verbose = true
   end
 
+  Rake::TestTask.new(:deployment) do |t|
+    t.pattern = 'test/unit/deployment_test.rb'
+    t.ruby_opts <<  '-rubygems'
+    t.verbose = true
+  end
+
 end

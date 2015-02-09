@@ -159,14 +159,14 @@ class DeploymentTest < ActiveSupport::TestCase
     assert_match /password/, deployment.errors.on('base').inspect
 
     # now give empty pw
-    deployment.prompt_config = {:password => ''}
+    deployment.prompt_config = {'password' => ''}
 
     assert !deployment.valid?
     assert_not_nil deployment.errors.on('base')
     assert_match /password/, deployment.errors.on('base').inspect
 
     # now give pw
-    deployment.prompt_config = {:password => 'abc'}
+    deployment.prompt_config = {'password' => 'abc'}
 
     assert deployment.valid?, deployment.errors.inspect
     assert_nil deployment.errors.on('base')

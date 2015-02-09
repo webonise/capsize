@@ -76,9 +76,6 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
     assert_equal [web_role, app_role].map(&:id).sort, deployment.deploy_to_roles.map(&:id).sort
   end
 
-  def test_invoke_task
-  end
-
   def test_type_casts
     assert_equal '', Capsize::Deployer.type_cast('')
     assert_equal nil, Capsize::Deployer.type_cast('nil')

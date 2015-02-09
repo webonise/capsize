@@ -4,7 +4,7 @@ module Capsize
       CONFIG = {
         :application => 'your_app_name',
         :deploy_to => '/path/to/deployment_base',
-        :scm => 'git',
+        :scm => ':git',
         :user => 'deployment_user(SSH login)',
         :repo_url => 'https://svn.example.com/project/trunk',
         :linked_files => %w{},

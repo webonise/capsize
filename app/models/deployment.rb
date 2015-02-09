@@ -15,7 +15,7 @@ class Deployment < ActiveRecord::Base
 
   attr_accessor :override_locking
 
-  after_create :add_stage_roles
+  before_create :add_stage_roles
 
   DEPLOY_TASKS    = ['deploy', 'deploy:default', 'deploy:migrations']
   SETUP_TASKS     = ['deploy:setup']
