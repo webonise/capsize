@@ -185,7 +185,9 @@ module Capsize
       @logger.info("Writing stage configuration to #{@project_name}/#{@stage.name}.rb")
       File.open(rooted("#{@project_name}/#{@stage.name}.rb"), 'w+') do |f|
         @stage.roles.each do |role|
-          f.puts "role :#{role.name}, %w{#{find_host_user(@project)}@#{role.host.name}}"
+          unless @deployment.excluded_host_ids.include?(role.host_id.to_s)
+            f.puts "role :#{role.name}, %w{#{find_host_user(@project)}@#{role.host.name}}"
+          end
         end
         @stage.configuration_parameters.each do |parameter|
           f.puts print_parameter(parameter)
