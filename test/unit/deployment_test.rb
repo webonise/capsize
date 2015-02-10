@@ -250,7 +250,7 @@ class DeploymentTest < ActiveSupport::TestCase
                   :stage => stage,
                   :excluded_host_ids => [host_1.id])
 
-    assert_equal 6, deployment.roles.count
+    assert_equal 3, deployment.roles.count
     assert_equal [host_1], deployment.excluded_hosts
 
     assert_equal [host_2], deployment.deploy_to_hosts
