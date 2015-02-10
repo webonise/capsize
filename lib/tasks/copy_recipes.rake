@@ -5,22 +5,15 @@ task :copy_recipes => :environment do
   class Recipe < ActiveRecord::Base
   end
 
-  recipe_collection = []
-
   Recipe.establish_connection{
     :capsize_production
   }
 
   Recipe.all.each do |recipe|
-    recipe_collection << recipe
-    Recipe.destroy(recipe.id)
-  end
-
-  recipe_collection.each do |r|
-    replace_callbacks(r)
-    replace_run_syntax(r)
-    replace_role_syntax(r)
-    Recipe.create(r.attributes)
+    replace_callbacks(recipe)
+    replace_run_syntax(recipe)
+    replace_role_syntax(recipe)
+    r.save!
   end
 
 end

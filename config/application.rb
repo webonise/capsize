@@ -80,6 +80,7 @@ module Www
       require 'capistrano/all'
       cap = Capistrano::Application.new
       config.capistrano_application = cap
+      require 'rails/all'
     end
 
   end
