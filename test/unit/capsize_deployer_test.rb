@@ -180,7 +180,7 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
 
     # the log in the DB should not be empty
     @deployment.reload
-    assert_match(/Please specify the repo_url that houses your application's code, set :repo_url, 'foo'/, @deployment.log) # ' fix highlighting
+    assert_match(/Please define the configuration parameters to deploy your application/, @deployment.log) # ' fix highlighting
     remove_directory(@deployment.stage.project.capsize_project_name)
   end
 
@@ -234,6 +234,7 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
 
   def test_handling_of_exceptions_during_command_execution
     deployer = Capsize::Deployer.new(@deployment)
+    deployer.stubs(:run_in_isolation).raises(RuntimeError)
     deployer.invoke_task!
     remove_directory(@deployment.stage.project.capsize_project_name)
 

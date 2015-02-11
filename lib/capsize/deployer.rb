@@ -94,9 +94,9 @@ module Capsize
       end
 
       write.close
-      result = read
+      result = read.read
       Process.wait(pid)
-      return false if result.read == "\n"
+      return false if result == "\n"
       result
     end
 
@@ -195,6 +195,9 @@ module Capsize
 
     def write_deploy
       @logger.info("Writing deploy configuration to #{@project_name}/deploy.rb")
+      if @project.configuration_parameters.empty?
+        raise ArgumentError, logger.important("Please define the configuration parameters to deploy your application")
+      end
       File.open(rooted("#{@project_name}/deploy.rb"), 'w+') do |f|
         @project.configuration_parameters.each do |parameter|
           f.puts print_parameter(parameter)
@@ -224,7 +227,9 @@ module Capsize
     end
 
     def find_host_user(project)
-      project.configuration_parameters.find_by_name('user').value
+      user = project.configuration_parameters.find_by_name('user')
+      raise ArgumentError, @logger.important("You must define the user parameter before deploying") if user.nil?
+      user.value
     end
 
     def load_requirements
