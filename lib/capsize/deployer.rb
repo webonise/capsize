@@ -122,9 +122,7 @@ module Capsize
     end
 
     def list_tasks
-      r = Capsize::Application.load_tasks
-      raise r.inspect if r.is_a?(String)
-      r
+      Capsize::Application.load_tasks
     end
 
     def self.cvs_root_defintion?(val)
@@ -216,7 +214,7 @@ module Capsize
       require 'capistrano/rvm'
       require 'capistrano/bundler'
       require 'capistrano/rails/migrations'
-      # require 'capistrano/rails/assets'
+      require 'capistrano/rails/assets'
     end
 
     def after_stage_invokations
