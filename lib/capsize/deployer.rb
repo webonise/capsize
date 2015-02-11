@@ -1,6 +1,8 @@
 require 'find'
 require 'fileutils'
 require 'capistrano/all'
+require 'capsize/application'
+
 
 
 module Capsize
@@ -34,7 +36,7 @@ module Capsize
       @logger = Capsize::Logger.new(@deployment)
       @logger.level = Capsize::Logger::TRACE
 
-      validate if deployment.new_record?
+      validate if !@deployment.new_record? && @deployment.task
     end
 
     # validates this instance
@@ -117,6 +119,12 @@ module Capsize
           val
         end
       end
+    end
+
+    def list_tasks
+      r = Capsize::Application.load_tasks
+      raise r.inspect if r.is_a?(String)
+      r
     end
 
     def self.cvs_root_defintion?(val)
@@ -208,7 +216,7 @@ module Capsize
       require 'capistrano/rvm'
       require 'capistrano/bundler'
       require 'capistrano/rails/migrations'
-      require 'capistrano/rails/assets'
+      # require 'capistrano/rails/assets'
     end
 
     def after_stage_invokations
