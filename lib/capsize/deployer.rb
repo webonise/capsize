@@ -1,14 +1,10 @@
 require 'find'
 require 'fileutils'
-require 'capistrano/all'
-require 'capsize/application'
-
 
 
 module Capsize
   class Deployer
     include ApplicationHelper
-    include Capistrano::DSL
     include Capsize::Application
     # Mix-in the Capistrano behavior
     # holds the capistrano options, see capistrano/lib/capistrano/cli/options.rb
@@ -50,8 +46,7 @@ module Capsize
     def invoke_task!
       options[:actions] = deployment.task
 
-      case execute!
-      when false
+      unless execute!
         deployment.complete_with_error!
         false
       else
@@ -65,21 +60,44 @@ module Capsize
       write_deploy
       write_stage
 
-      load_requirements
-      capsize_setup(@stage)
-      set_output
-      status = catch(:abort_called_by_capistrano){
+
+      status = run_in_isolation do
+        load_requirements
+        capsize_setup(@stage)
+        set_output
         Capistrano::Application.invoke("#{@stage.name}")
         after_stage_invokations
         Capistrano::Application.invoke(options[:actions])
-      }
-      close_output
+        close_output
+      end
 
-      status != :capistrano_abort
+      status
 
     rescue Exception => error
       handle_error(error)
       return false
+    end
+
+    def run_in_isolation
+      read, write = IO.pipe
+
+      pid = fork do
+        read.close
+        begin
+          result = yield
+        rescue Exception => error
+          handle_error(error)
+          result = nil
+        end
+        write.puts result
+        exit!(0)
+      end
+
+      write.close
+      result = read
+      Process.wait(pid)
+      return false if result.read == "\n"
+      result
     end
 
     # saves the process ID of this running deployment in order
@@ -210,6 +228,7 @@ module Capsize
     end
 
     def load_requirements
+      require "capistrano/all"
       require "capsize/capsize_setup"
       require "capistrano/deploy"
       require 'capistrano/rvm'
