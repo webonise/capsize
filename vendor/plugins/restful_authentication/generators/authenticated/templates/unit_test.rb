@@ -16,28 +16,28 @@ class <%= class_name %>Test < Test::Unit::TestCase
   def test_should_require_login
     assert_no_difference '<%= class_name %>.count' do
       u = create_<%= file_name %>(:login => nil)
-      assert u.errors.on(:login)
+      assert u.errors[:login].first
     end
   end
 
   def test_should_require_password
     assert_no_difference '<%= class_name %>.count' do
       u = create_<%= file_name %>(:password => nil)
-      assert u.errors.on(:password)
+      assert u.errors[:password].first
     end
   end
 
   def test_should_require_password_confirmation
     assert_no_difference '<%= class_name %>.count' do
       u = create_<%= file_name %>(:password_confirmation => nil)
-      assert u.errors.on(:password_confirmation)
+      assert u.errors[:password_confirmation].first
     end
   end
 
   def test_should_require_email
     assert_no_difference '<%= class_name %>.count' do
       u = create_<%= file_name %>(:email => nil)
-      assert u.errors.on(:email)
+      assert u.errors[:email].first
     end
   end
 

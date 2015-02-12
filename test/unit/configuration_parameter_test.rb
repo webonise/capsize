@@ -174,7 +174,7 @@ class ConfigurationParameterTest < ActiveSupport::TestCase
       :prompt_on_deploy => 0
     )
     c.valid?
-    assert_equal "can't contain a colon", c.errors.on(:name)
+    assert_equal "can't contain a colon", c.errors[:name].first
   end
 
   def test_should_not_be_valid_when_name_starts_with_spaces_and_colon
@@ -184,7 +184,7 @@ class ConfigurationParameterTest < ActiveSupport::TestCase
       :prompt_on_deploy => 0
     )
     c.valid?
-    assert_equal "can't contain a colon", c.errors.on(:name)
+    assert_equal "can't contain a colon", c.errors[:name].first
   end
   
 end

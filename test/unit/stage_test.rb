@@ -14,7 +14,7 @@ class StageTest < ActiveSupport::TestCase
 
     # project is missing
     assert !s.valid?
-    assert_not_nil s.errors.on('project')
+    assert_not_nil s.errors['project'].first
 
   end
 
@@ -23,7 +23,7 @@ class StageTest < ActiveSupport::TestCase
 
     # project is missing
     assert !s.valid?
-    assert_not_nil s.errors.on('project')
+    assert_not_nil s.errors['project'].first
 
     # make it pass
     s.project = @project
@@ -33,14 +33,14 @@ class StageTest < ActiveSupport::TestCase
     s = Stage.new(:name => "Beta")
     s.project = @project
     assert !s.valid?
-    assert_not_nil s.errors.on("name")
+    assert_not_nil s.errors["name"].first
 
     # try to create a stage with a name that is too long
     name = "x" * 251
     s = Stage.new(:name => name)
     s.project = @project
     assert !s.valid?
-    assert_not_nil s.errors.on("name")
+    assert_not_nil s.errors["name"].first
 
     # make it pass
     s.name = name.chop

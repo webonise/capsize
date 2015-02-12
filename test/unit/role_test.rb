@@ -32,11 +32,11 @@ class RoleTest < ActiveSupport::TestCase
     
     # stage is missing
     assert !r.valid?
-    assert_not_nil r.errors.on('stage')
+    assert_not_nil r.errors['stage'].first
     
     # host is missing
     assert !r.valid?
-    assert_not_nil r.errors.on('host')
+    assert_not_nil r.errors['host'].first
     
     # make it pass
     r.stage = @stage
@@ -50,7 +50,7 @@ class RoleTest < ActiveSupport::TestCase
     r.stage = @stage
     r.host = @host
     assert !r.valid?
-    assert_not_nil r.errors.on("name")
+    assert_not_nil r.errors["name"].first
 
     # make it pass
     assert_equal 250, name.chop.size
@@ -71,7 +71,7 @@ class RoleTest < ActiveSupport::TestCase
     r.host = @host
     r.stage = @stage
     assert !r.valid?
-    assert_not_nil r.errors.on('name')
+    assert_not_nil r.errors['name'].first
     
     # fix it
     r.name = 'app'
@@ -97,7 +97,7 @@ class RoleTest < ActiveSupport::TestCase
     # check valid values
     r.primary = 2
     assert !r.valid?
-    assert_not_nil r.errors.on("primary")
+    assert_not_nil r.errors["primary"].first
   end
 
   def test_setup_done_and_deployed
