@@ -141,7 +141,18 @@ module Capsize
     end
 
     def list_tasks
-      load_tasks
+      output = run_in_isolation do
+        require 'capistrano/all'
+        cap = Capistrano::Application.new
+        Rake.application = cap
+        cap.init
+        cap.load_rakefile
+        cap.tasks
+      end
+      return ["Error Loading Tasks"] unless output
+      cap_tasks = []
+      output.each_line { |task| cap_tasks << task }
+      cap_tasks.map { |task| task.gsub("\n", '') }
     end
 
     def self.cvs_root_defintion?(val)
