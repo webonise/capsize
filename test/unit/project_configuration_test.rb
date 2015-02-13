@@ -21,7 +21,7 @@ class ProjectConfigurationTest < ActiveSupport::TestCase
     # try to create such a param and fail
     config = p.configuration_parameters.build(:name => 'user', :value => 'MAMA_MIA')
     assert !config.valid?
-    assert_not_nil config.errors.on('name')
+    assert_not_nil config.errors['name'].first
 
     # create a new parameter by hand
     config = p.configuration_parameters.build(:name => 'bla_bla', :value => 'blub_blub')
@@ -30,6 +30,6 @@ class ProjectConfigurationTest < ActiveSupport::TestCase
     # try to create
     config = p.configuration_parameters.build(:name => 'bla_bla', :value => 'MAMA_MIA')
     assert !config.valid?
-    assert_not_nil config.errors.on('name')
+    assert_not_nil config.errors['name'].first
   end
 end

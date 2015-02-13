@@ -37,45 +37,45 @@ class DeploymentTest < ActiveSupport::TestCase
     # task and stage missing
     d = Deployment.new
     assert !d.valid?
-    assert_not_nil d.errors.on('task')
-    assert_not_nil d.errors.on('stage')
-    assert_nil d.errors.on('description')
-    assert_not_nil d.errors.on('user')
+    assert_not_nil d.errors['task'].first
+    assert_not_nil d.errors['stage'].first
+    assert_nil d.errors['description'].first
+    assert_not_nil d.errors['user'].first
 
     # fix it
     d.stage = @stage
     assert !d.valid?
-    assert_not_nil d.errors.on('user')
-    assert_nil d.errors.on('description')
-    assert_not_nil d.errors.on('task')
-    assert_nil d.errors.on('stage')
+    assert_not_nil d.errors['user'].first
+    assert_nil d.errors['description'].first
+    assert_not_nil d.errors['task'].first
+    assert_nil d.errors['stage'].first
     d.task = 'deploy:setup'
     assert !d.valid?
-    assert_not_nil d.errors.on('user')
-    assert_nil d.errors.on('description')
-    assert_nil d.errors.on('task')
-    assert_nil d.errors.on('stage')
+    assert_not_nil d.errors['user'].first
+    assert_nil d.errors['description'].first
+    assert_nil d.errors['task'].first
+    assert_nil d.errors['stage'].first
     d.description = 'update to newest'
     assert !d.valid?
-    assert_not_nil d.errors.on('user')
-    assert_nil d.errors.on('description')
-    assert_nil d.errors.on('task')
-    assert_nil d.errors.on('stage')
+    assert_not_nil d.errors['user'].first
+    assert_nil d.errors['description'].first
+    assert_nil d.errors['task'].first
+    assert_nil d.errors['stage'].first
 
     d.user = create_new_user
     assert d.valid?
-    assert_nil d.errors.on('user')
-    assert_nil d.errors.on('description')
-    assert_nil d.errors.on('task')
-    assert_nil d.errors.on('stage')
+    assert_nil d.errors['user'].first
+    assert_nil d.errors['description'].first
+    assert_nil d.errors['task'].first
+    assert_nil d.errors['stage'].first
 
     # try status values
     d.status = 'bla'
     assert !d.valid?
-    assert_not_nil d.errors.on('status')
+    assert_not_nil d.errors['status'].first
     d.status = 'failed'
     assert d.valid?
-    assert_nil d.errors.on('status')
+    assert_nil d.errors['status'].first
   end
 
   def test_completed_and_status_on_error
@@ -139,7 +139,7 @@ class DeploymentTest < ActiveSupport::TestCase
     deployment.roles << role
 
     assert !deployment.valid?
-    assert_match /is not ready to deploy/, deployment.errors.on('stage')
+    assert_match /is not ready to deploy/, deployment.errors['stage'].first
   end
 
   def test_check_of_stage_prompt_configuration_in_validation
@@ -155,21 +155,21 @@ class DeploymentTest < ActiveSupport::TestCase
     deployment.user = create_new_user
 
     assert !deployment.valid?
-    assert_not_nil deployment.errors.on('base')
-    assert_match /password/, deployment.errors.on('base').inspect
+    assert_not_nil deployment.errors['base'].first
+    assert_match /password/, deployment.errors['base'].first.inspect
 
     # now give empty pw
     deployment.prompt_config = {'password' => ''}
 
     assert !deployment.valid?
-    assert_not_nil deployment.errors.on('base')
-    assert_match /password/, deployment.errors.on('base').inspect
+    assert_not_nil deployment.errors['base'].first
+    assert_match /password/, deployment.errors['base'].first.inspect
 
     # now give pw
     deployment.prompt_config = {'password' => 'abc'}
 
     assert deployment.valid?, deployment.errors.inspect
-    assert_nil deployment.errors.on('base')
+    assert_nil deployment.errors['base'].first
   end
 
   def test_prompt_config_init
@@ -270,7 +270,7 @@ class DeploymentTest < ActiveSupport::TestCase
     d.user = create_new_user
 
     assert !d.valid?
-    assert d.errors.on('base')
+    assert d.errors['base'].first
   end
 
   def test_cancelling_possible

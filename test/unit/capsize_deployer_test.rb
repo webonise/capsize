@@ -180,7 +180,7 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
 
     # the log in the DB should not be empty
     @deployment.reload
-    assert_match(/Please specify the repo_url that houses your application's code, set :repo_url, 'foo'/, @deployment.log) # ' fix highlighting
+    assert_match(/Please define the configuration parameters to deploy your application/, @deployment.log) # ' fix highlighting
     remove_directory(@deployment.stage.project.capsize_project_name)
   end
 
@@ -234,6 +234,9 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
 
   def test_handling_of_exceptions_during_command_execution
     deployer = Capsize::Deployer.new(@deployment)
+    deployer.run_in_isolation do
+      raise RuntimeError
+    end
     deployer.invoke_task!
     remove_directory(@deployment.stage.project.capsize_project_name)
 
@@ -298,6 +301,37 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
     deployer.browser_log.rewind
 
     assert_match /thisshouldshowup/, deployer.browser_log.string
+  end
+
+  def test_tasks_load
+    deployer = Capsize::Deployer.new(@deployment)
+    tasks = deployer.list_tasks
+
+    assert tasks.include?('load:defaults'), tasks.inspect
+    assert tasks.include?('deploy:rollback')
+  end
+
+  def test_task_load_error
+    deployer = Capsize::Deployer.new(@deployment)
+    deployer.stubs(:run_in_isolation).returns(false)
+    tasks = deployer.list_tasks
+
+    assert_equal tasks, ['Error Loading Tasks']
+  end
+
+  def test_runs_in_isolation
+    deployer = Capsize::Deployer.new(@deployment)
+    this_process = Process.pid
+
+    output = deployer.run_in_isolation do
+      Process.pid
+    end
+
+    child_process = output.gsub("\n", '').to_i
+
+    assert_not_equal this_process, child_process
+    assert_equal Process.pid, this_process
+    assert_raise(Errno::ESRCH) { Process.getpgid(child_process) }
   end
 
   protected

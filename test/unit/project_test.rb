@@ -19,13 +19,13 @@ class ProjectTest < ActiveSupport::TestCase
     # try to create another project with the same name
     p = Project.new(:name => "Project Alpha")
     assert !p.valid?
-    assert_not_nil p.errors.on("name")
+    assert_not_nil p.errors["name"].first
 
     # try to create a project with a name that is too long
     name = "x" * 251
     p = Project.new(:name => name, :template => 'rails')
     assert !p.valid?
-    assert_not_nil p.errors.on("name")
+    assert_not_nil p.errors["name"].first
 
     # make it pass
     name = name.chop
@@ -36,8 +36,8 @@ class ProjectTest < ActiveSupport::TestCase
     p = Project.new(:name => "Project XXXX")
     p.template = 'bla_bla'
     assert !p.valid?
-    assert_not_nil p.errors.on("template")
-    assert_match /is not/, p.errors.on("template")
+    assert_not_nil p.errors["template"].first
+    assert_match /is not/, p.errors["template"].first
 
     # fix template validation
     p.template = 'rails'

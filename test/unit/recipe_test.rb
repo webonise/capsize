@@ -56,14 +56,14 @@ class RecipeTest < ActiveSupport::TestCase
                            :description => "Recipe body intentionally erronous",
                            :body => "set config_files, database.yml'")
     assert !recipe.valid?
-    assert_equal "syntax error at line: 1", recipe.errors.on(:body)
+    assert_equal "syntax error at line: 1", recipe.errors[:body].first
   end
   
   def test_validate_valid_syntax_on_create
     recipe = Recipe.create(:name => "Copy Config files",
                            :description => "Recipe body intentionally erronous",
                            :body => "set :config_files, 'database.yml'")
-    assert !recipe.errors.on(:body)
+    assert !recipe.errors[:body].first
   end
   
   def test_validate_with_open4_error
@@ -71,6 +71,6 @@ class RecipeTest < ActiveSupport::TestCase
     recipe = Recipe.create(:name => "Copy Config files",
                            :description => "Recipe body intentionally erronous",
                            :body => "set :config_files, 'database.yml'")
-    assert !recipe.errors.on(:body)
+    assert !recipe.errors[:body].first
   end
 end

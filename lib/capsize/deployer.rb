@@ -1,15 +1,10 @@
 require 'find'
 require 'fileutils'
-require 'capistrano/all'
-require 'capsize/application'
-
 
 
 module Capsize
   class Deployer
     include ApplicationHelper
-    include Capistrano::DSL
-    include Capsize::Application
     # Mix-in the Capistrano behavior
     # holds the capistrano options, see capistrano/lib/capistrano/cli/options.rb
     attr_accessor :options
@@ -46,12 +41,26 @@ module Capsize
       raise ArgumentError, 'The given deployment has no roles and thus can not be deployed!' if deployment.roles.empty?
     end
 
+    def list_tasks
+      output = run_in_isolation do
+        require 'capistrano/all'
+        cap = Capistrano::Application.new
+        Rake.application = cap
+        cap.init
+        cap.load_rakefile
+        cap.tasks
+      end
+      return ["Error Loading Tasks"] unless output
+      cap_tasks = []
+      output.each_line { |task| cap_tasks << task }
+      cap_tasks.map { |task| task.gsub("\n", '') }
+    end
+
     # actual invokment of a given task (through @deployment)
     def invoke_task!
       options[:actions] = deployment.task
 
-      case execute!
-      when false
+      unless execute!
         deployment.complete_with_error!
         false
       else
@@ -65,21 +74,44 @@ module Capsize
       write_deploy
       write_stage
 
-      load_requirements
-      capsize_setup(@stage)
-      set_output
-      status = catch(:abort_called_by_capistrano){
+
+      status = run_in_isolation do
+        load_requirements
+        capsize_setup(@stage)
+        set_output
         Capistrano::Application.invoke("#{@stage.name}")
         after_stage_invokations
         Capistrano::Application.invoke(options[:actions])
-      }
-      close_output
+        close_output
+      end
 
-      status != :capistrano_abort
+      status
 
     rescue Exception => error
       handle_error(error)
       return false
+    end
+
+    def run_in_isolation
+      read, write = IO.pipe
+
+      pid = fork do
+        read.close
+        begin
+          result = yield
+        rescue Exception => error
+          handle_error(error)
+          result = nil
+        end
+        write.puts result
+        exit!(0)
+      end
+
+      write.close
+      result = read.read
+      Process.wait(pid)
+      return false if result == "\n"
+      result
     end
 
     # saves the process ID of this running deployment in order
@@ -120,10 +152,6 @@ module Capsize
           val
         end
       end
-    end
-
-    def list_tasks
-      load_tasks
     end
 
     def self.cvs_root_defintion?(val)
@@ -177,6 +205,9 @@ module Capsize
 
     def write_deploy
       @logger.info("Writing deploy configuration to #{@project_name}/deploy.rb")
+      if @project.configuration_parameters.empty?
+        raise ArgumentError, logger.important("Please define the configuration parameters to deploy your application")
+      end
       File.open(rooted("#{@project_name}/deploy.rb"), 'w+') do |f|
         @project.configuration_parameters.each do |parameter|
           f.puts print_parameter(parameter)
@@ -206,10 +237,13 @@ module Capsize
     end
 
     def find_host_user(project)
-      project.configuration_parameters.find_by_name('user').value
+      user = project.configuration_parameters.find_by_name('user')
+      raise ArgumentError, @logger.important("You must define the user parameter before deploying") if user.nil?
+      user.value
     end
 
     def load_requirements
+      require "capistrano/all"
       require "capsize/capsize_setup"
       require "capistrano/deploy"
       require 'capistrano/rvm'

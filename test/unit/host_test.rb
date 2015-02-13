@@ -22,14 +22,14 @@ class HostTest < ActiveSupport::TestCase
     # try to create another host with the same name
     h = Host.new(:name => "192.168.0.1")
     assert !h.valid?
-    assert_not_nil h.errors.on("name")
+    assert_not_nil h.errors["name"].first
     
     # try to create a host with a name that is too long
     name = "com." * 251
     name = name.chop
     h = Host.new(:name => name)
     assert !h.valid?
-    assert_not_nil h.errors.on("name")
+    assert_not_nil h.errors["name"].first
     
     # make it pass
     name = "example.com"
