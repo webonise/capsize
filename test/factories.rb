@@ -164,7 +164,7 @@ module Factories
     d.override_locking = options[:override_locking]
 
     d.roles << options[:roles] unless options[:roles].empty?
-    d.roles << options[:stage].roles if options[:stage].roles.any?
+
     d.save!
 
     return d

@@ -76,12 +76,6 @@ module Www
         :secret => CapsizeConfig[:session_secret]
     }
 
-    config.after_initialize do
-      require 'capistrano/all'
-      cap = Capistrano::Application.new
-      config.capistrano_application = cap
-    end
-
   end
 end
 

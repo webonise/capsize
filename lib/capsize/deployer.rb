@@ -1,12 +1,15 @@
 require 'find'
 require 'fileutils'
 require 'capistrano/all'
+require 'capsize/application'
+
 
 
 module Capsize
   class Deployer
     include ApplicationHelper
     include Capistrano::DSL
+    include Capsize::Application
     # Mix-in the Capistrano behavior
     # holds the capistrano options, see capistrano/lib/capistrano/cli/options.rb
     attr_accessor :options
@@ -34,7 +37,7 @@ module Capsize
       @logger = Capsize::Logger.new(@deployment)
       @logger.level = Capsize::Logger::TRACE
 
-      validate if deployment.new_record?
+      validate if !@deployment.new_record? && @deployment.task
     end
 
     # validates this instance
@@ -119,6 +122,10 @@ module Capsize
       end
     end
 
+    def list_tasks
+      load_tasks
+    end
+
     def self.cvs_root_defintion?(val)
       val.index(':') == 0 && val.scan(":").size > 1
     end
@@ -185,7 +192,9 @@ module Capsize
       @logger.info("Writing stage configuration to #{@project_name}/#{@stage.name}.rb")
       File.open(rooted("#{@project_name}/#{@stage.name}.rb"), 'w+') do |f|
         @stage.roles.each do |role|
-          f.puts "role :#{role.name}, %w{#{find_host_user(@project)}@#{role.host.name}}"
+          unless @deployment.excluded_host_ids.include?(role.host_id.to_s)
+            f.puts "role :#{role.name}, %w{#{find_host_user(@project)}@#{role.host.name}}"
+          end
         end
         @stage.configuration_parameters.each do |parameter|
           f.puts print_parameter(parameter)

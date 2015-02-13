@@ -159,14 +159,14 @@ class DeploymentTest < ActiveSupport::TestCase
     assert_match /password/, deployment.errors.on('base').inspect
 
     # now give empty pw
-    deployment.prompt_config = {:password => ''}
+    deployment.prompt_config = {'password' => ''}
 
     assert !deployment.valid?
     assert_not_nil deployment.errors.on('base')
     assert_match /password/, deployment.errors.on('base').inspect
 
     # now give pw
-    deployment.prompt_config = {:password => 'abc'}
+    deployment.prompt_config = {'password' => 'abc'}
 
     assert deployment.valid?, deployment.errors.inspect
     assert_nil deployment.errors.on('base')
@@ -250,7 +250,7 @@ class DeploymentTest < ActiveSupport::TestCase
                   :stage => stage,
                   :excluded_host_ids => [host_1.id])
 
-    assert_equal 6, deployment.roles.count
+    assert_equal 3, deployment.roles.count
     assert_equal [host_1], deployment.excluded_hosts
 
     assert_equal [host_2], deployment.deploy_to_hosts
