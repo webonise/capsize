@@ -5,7 +5,6 @@ require 'fileutils'
 module Capsize
   class Deployer
     include ApplicationHelper
-    include Capsize::Application
     # Mix-in the Capistrano behavior
     # holds the capistrano options, see capistrano/lib/capistrano/cli/options.rb
     attr_accessor :options
@@ -40,6 +39,21 @@ module Capsize
     # raises on ArgumentError if not valid
     def validate
       raise ArgumentError, 'The given deployment has no roles and thus can not be deployed!' if deployment.roles.empty?
+    end
+
+    def list_tasks
+      output = run_in_isolation do
+        require 'capistrano/all'
+        cap = Capistrano::Application.new
+        Rake.application = cap
+        cap.init
+        cap.load_rakefile
+        cap.tasks
+      end
+      return ["Error Loading Tasks"] unless output
+      cap_tasks = []
+      output.each_line { |task| cap_tasks << task }
+      cap_tasks.map { |task| task.gsub("\n", '') }
     end
 
     # actual invokment of a given task (through @deployment)
@@ -138,21 +152,6 @@ module Capsize
           val
         end
       end
-    end
-
-    def list_tasks
-      output = run_in_isolation do
-        require 'capistrano/all'
-        cap = Capistrano::Application.new
-        Rake.application = cap
-        cap.init
-        cap.load_rakefile
-        cap.tasks
-      end
-      return ["Error Loading Tasks"] unless output
-      cap_tasks = []
-      output.each_line { |task| cap_tasks << task }
-      cap_tasks.map { |task| task.gsub("\n", '') }
     end
 
     def self.cvs_root_defintion?(val)
