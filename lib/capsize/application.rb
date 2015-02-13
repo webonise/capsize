@@ -23,10 +23,9 @@ module Capsize
         exit!(0)
       end
       write.close
-      result = read.read
 
       Process.wait(pid)
-      result
+      read.read
     end
   end
 end
