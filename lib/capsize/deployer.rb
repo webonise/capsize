@@ -9,6 +9,7 @@ module Capsize
   class Deployer
     include ApplicationHelper
     include Capistrano::DSL
+    include Capsize::Application
     # Mix-in the Capistrano behavior
     # holds the capistrano options, see capistrano/lib/capistrano/cli/options.rb
     attr_accessor :options
@@ -122,7 +123,7 @@ module Capsize
     end
 
     def list_tasks
-      Capsize::Application.load_tasks
+      load_tasks
     end
 
     def self.cvs_root_defintion?(val)

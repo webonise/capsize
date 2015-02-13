@@ -7,14 +7,14 @@ module Capsize
         :scm => ':git',
         :user => 'deployment_user(SSH login)',
         :repo_url => 'https://svn.example.com/project/trunk',
-        :linked_files => %w{},
-        :linked_dirs => %w{},
+        :linked_files => '%w{}',
+        :linked_dirs => '%w{}',
         :branch => 'master',
-        :keep_releases => 5,
+        :keep_releases => '5',
         :tmp_dir => '/tmp',
-        :pty => false,
-        :log_level => :debug,
-        :format => :pretty
+        :pty => 'false',
+        :log_level => ':debug',
+        :format => ':pretty'
       }.freeze
 
       DESC = <<-'EOS'

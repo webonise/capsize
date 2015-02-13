@@ -1,7 +1,7 @@
 module Capsize
   module Application
-    def self.load_tasks
-      Application.load_tasks_in_isolation do
+    def load_tasks
+      output = run_in_isolation do
         require 'capistrano/all'
         cap = Capistrano::Application.new
         Rake.application = cap
@@ -9,23 +9,24 @@ module Capsize
         cap.load_rakefile
         cap.tasks
       end
+      cap_tasks = []
+      output.each_line { |task| cap_tasks << task }
+      cap_tasks.map { |task| task.gsub("\n", '') }
     end
 
-    def self.load_tasks_in_isolation
+    def run_in_isolation
       read, write = IO.pipe
 
       pid = fork do
         read.close
-        result = yield
-        write.puts result
+        write.puts yield
         exit!(0)
       end
-
       write.close
-      cap_tasks = []
-      read.each_line { |task| cap_tasks << task }
+      result = read.read
+
       Process.wait(pid)
-      cap_tasks
+      result
     end
   end
 end
