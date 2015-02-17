@@ -55,6 +55,10 @@ class Project < ActiveRecord::Base
     AVAILABLE_EXTENSIONS
   end
 
+  def extensions
+    attributes["extensions"] ||= []
+  end
+
   # returns a better form of the project name for use inside Capistrano recipes
   def capsize_project_name
     self.name.underscore.gsub(/[^a-zA-Z0-9\-\_]/, '_')

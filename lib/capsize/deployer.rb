@@ -42,6 +42,7 @@ module Capsize
     end
 
     def list_tasks
+      write_capfile
       output = run_in_isolation do
         require 'capistrano/all'
         cap = Capistrano::Application.new
@@ -236,6 +237,17 @@ module Capsize
       end
     end
 
+    def write_capfile
+      File.open(Rails.root.join("Capfile"), 'w+') do |f|
+        f.puts "require 'capistrano/setup'"
+        f.puts "require 'capistrano/deploy'"
+        @project.extensions.each do |ext|
+          f.puts "require 'capistrano/#{ext}'"
+        end
+        f.puts "Dir.glob('lib/capistrano/tasks/*.rake').each { |r| import r }"
+      end
+    end
+
     def find_host_user(project)
       user = project.configuration_parameters.find_by_name('user')
       raise ArgumentError, @logger.important("You must define the user parameter before deploying") if user.nil?
@@ -246,10 +258,9 @@ module Capsize
       require "capistrano/all"
       require "capsize/capsize_setup"
       require "capistrano/deploy"
-      require 'capistrano/rvm'
-      require 'capistrano/bundler'
-      require 'capistrano/rails/migrations'
-      require 'capistrano/rails/assets'
+      @project.extensions.each do |ext|
+        require "capistrano/#{ext}"
+      end
     end
 
     def after_stage_invokations

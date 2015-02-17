@@ -1,5 +1,13 @@
-<% if @project.extensions.nil? %>
+<% if @project.extensions.empty? %>
   <br/>
     <strong>No extensions configured yet.</strong><br/>
   <br/>
+<% else %>
+  <br/>
+    <% @project.extensions.each do |ext| %>
+      <strong> <%= ext %>|</strong>
+    <% end %>
+  <br/>
 <% end %>
+<br/>
+<%= link_to 'Edit extensions', edit_project_path(@project), :class => 'arrow_link' %>
