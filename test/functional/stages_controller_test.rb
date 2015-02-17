@@ -97,6 +97,30 @@ class StagesControllerTest < ActionController::TestCase
     assert_match /deploy:rollback/, @response.body
   end
 
+  def test_should_show_extension_stage_tasks
+    get :tasks, :id => @stage.id, :project_id => @project.id
+    assert_response :success
+
+    assert @project.extensions.include?('rvm') && @project.extensions.include?('bundler')
+    assert_equal @project.extensions.length, 2
+
+    assert_match /bundler:install/, @response.body
+    assert_match /rvm:hook/, @response.body
+    assert_no_match /deploy:migrate/, @response.body
+    assert_no_match /deploy:assets:precompile/, @response.body
+
+    @project.extensions = ['rails/assets', 'rails/migrations']
+    @project.save!
+
+    get :tasks, :id => @stage.id, :project_id => @project.id
+    assert_response :success
+
+    assert_no_match /bundler:install/, @response.body
+    assert_no_match /rvm:hook/, @response.body
+    assert_match /deploy:migrate/, @response.body
+    assert_match /deploy:assets:precompile/, @response.body
+  end
+
   def test_should_render_xml_for_stage_tasks
     get :tasks, :id => @stage.id, :project_id => @project.id, :format => "xml"
     assert_response :success

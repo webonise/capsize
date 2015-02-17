@@ -311,6 +311,29 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
     assert tasks.include?('deploy:rollback')
   end
 
+  def test_extensions_tasks_load
+    project = @deployment.stage.project
+    assert project.extensions.include?('rvm') && project.extensions.include?('bundler')
+    assert_equal project.extensions.length, 2
+
+    deployer = Capsize::Deployer.new(@deployment)
+    tasks = deployer.list_tasks
+
+    assert tasks.include?('bundler:install')
+    assert tasks.include?('rvm:hook')
+    assert !tasks.include?('deploy:migrate')
+    assert !tasks.include?('deploy:assets:precompile')
+
+    project.extensions = ['rails/assets', 'rails/migrations']
+    project.save!
+    tasks = deployer.list_tasks
+
+    assert !tasks.include?('bundler:install')
+    assert !tasks.include?('rvm:hook')
+    assert tasks.include?('deploy:migrate')
+    assert tasks.include?('deploy:assets:precompile')
+  end
+
   def test_task_load_error
     deployer = Capsize::Deployer.new(@deployment)
     deployer.stubs(:run_in_isolation).returns(false)

@@ -56,6 +56,7 @@ class Project < ActiveRecord::Base
   end
 
   def extensions
+    attributes["extensions"].reject! {|a| a == ''} unless attributes["extensions"].nil?
     attributes["extensions"] ||= []
   end
 

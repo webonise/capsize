@@ -19,6 +19,7 @@
 <h3>Capistrano Extensions</h3>
 <%- @project.available_extensions.each do |ext| -%>
 <p>
+  <%= hidden_field_tag "project[extensions][]", '' %>
   <%= check_box_tag 'project[extensions][]', ext, @project.extensions.include?(ext), :class => 'noframe' %> <b><%= ext %></b>
 </p>
 <%- end -%>

@@ -164,4 +164,24 @@ class ProjectTest < ActiveSupport::TestCase
     assert_equal 2, project.recent_deployments(2).size
   end
 
+  def test_extensions
+    project = create_new_project
+
+    assert project.extensions.include?("rvm")
+    assert project.extensions.include?("bundler")
+
+    project.extensions = ["", "", "rails/assets", "rails/migrations"]
+    project.save!
+
+    assert project.extensions.include?("rails/assets")
+    assert project.extensions.include?("rails/migrations")
+    assert !project.extensions.include?("")
+    assert_equal project.extensions.length, 2
+
+    project.extensions = nil
+    project.save!
+
+    assert_equal project.extensions, []
+  end
+
 end
