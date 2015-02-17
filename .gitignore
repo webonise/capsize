@@ -27,3 +27,6 @@ capsize_projects
 #coverage
 coverage/
 .simplecov
+
+#capfile
+Capfile

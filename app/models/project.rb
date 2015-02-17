@@ -22,7 +22,7 @@ class Project < ActiveRecord::Base
 
   serialize :extensions
 
-  AVAILABLE_EXTENSIONS = %w{rvm bundler rails/assets rails/migrations}
+  AVAILABLE_EXTENSIONS = %w{rvm bundler rails/assets rails/migrations rbenv composer symfony npm laravel chruby}
 
   # creates the default configuration parameters based on the template
   def create_template_defaults
