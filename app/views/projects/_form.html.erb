@@ -16,10 +16,18 @@
   <%= check_box 'project', 'archived', :class => 'noframe' %> <b>Archived?</b>
 </p>
 
+<h3>Capistrano Extensions</h3>
+<%- @project.available_extensions.each do |ext| -%>
+<p>
+  <%= check_box_tag 'project[extensions][]', ext, @project.extensions, :class => 'noframe' %> <b><%= ext %></b>
+</p>
+<%- end -%>
+
+
 <h3>User access</h3>
 <%- User.all.each do |user| -%>
   <p>
-    <%= check_box_tag "project[user_ids][]", user.id, @project.users.include?(user), :class => 'noframe' %> <b><%= user.login %></b> 
+    <%= check_box_tag "project[user_ids][]", user.id, @project.users.include?(user), :class => 'noframe' %> <b><%= user.login %></b>
   </p>
 <%- end -%>
 
@@ -27,20 +35,20 @@
 
 <% content_for(:page_scripts) do %>
  <script type="text/javascript">
- 
+
     Event.observe(window, 'load', function(){
       Event.observe('project_template', 'change', show_template_info);
-      
+
       // show info for already chosen template
       show_template_info();
     });
- 
+
    function show_template_info(){
      hide_all_infos();
      var info_to_show = $F('project_template') + '_desc';
      $(info_to_show).show();
    }
-   
+
    function hide_all_infos(){
      <% for template in @template_infos %>
        $('<%= template.first %>_desc').hide();
