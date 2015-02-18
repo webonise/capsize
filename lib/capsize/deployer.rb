@@ -79,11 +79,9 @@ module Capsize
       status = run_in_isolation do
         load_requirements
         capsize_setup(@stage)
-        set_output
         Capistrano::Application.invoke("#{@stage.name}")
         after_stage_invokations
         Capistrano::Application.invoke(options[:actions])
-        close_output
       end
 
       status
@@ -95,9 +93,13 @@ module Capsize
 
     def run_in_isolation
       read, write = IO.pipe
+      reader, writer = IO.pipe
 
       pid = fork do
         read.close
+        $stdout.reopen writer
+        $stdout.sync = true
+        reader.close
         begin
           result = yield
         rescue Exception => error
@@ -108,6 +110,11 @@ module Capsize
         exit!(0)
       end
 
+      writer.close
+      reader.each_line do |line|
+        @deployment.log = (@deployment.log || '') + line
+        @deployment.save!
+      end
       write.close
       result = read.read
       Process.wait(pid)
@@ -213,10 +220,6 @@ module Capsize
         @project.configuration_parameters.each do |parameter|
           f.puts print_parameter(parameter)
         end
-          f.puts after_flow(@stage.name)
-        %w{deploy:started deploy:updated deploy:published deploy:finished}.each do |task|
-          f.puts after_flow(task)
-        end
       end
     end
 
@@ -272,17 +275,5 @@ module Capsize
     def after_flow(task)
       "after '#{task}', :custom_log"
     end
-
-    def set_output
-      @browser_log = StringIO.new
-      $stdout = @browser_log
-      $stdout.sync = true
-      ENV['deployment_id'] = deployment.id.to_s
-    end
-
-    def close_output
-      $stdout = STDOUT
-    end
-
   end
 end
