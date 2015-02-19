@@ -13,9 +13,7 @@ module Capsize
     attr_accessor :deployment
 
     attr_accessor :logger
-
-    attr_reader :browser_log
-
+    
     def initialize(deployment)
       @options = {
         :recipes => [],
@@ -93,13 +91,13 @@ module Capsize
 
     def run_in_isolation
       read, write = IO.pipe
-      reader, writer = IO.pipe
+      read_out, write_out = IO.pipe
 
       pid = fork do
         read.close
-        $stdout.reopen writer
+        $stdout.reopen write_out
         $stdout.sync = true
-        reader.close
+        read_out.close
         begin
           result = yield
         rescue Exception => error
@@ -110,8 +108,8 @@ module Capsize
         exit!(0)
       end
 
-      writer.close
-      reader.each_line do |line|
+      write_out.close
+      read_out.each_line do |line|
         @deployment.log = (@deployment.log || '') + line
         @deployment.save!
       end
