@@ -29,13 +29,15 @@ module Factories
     options = {
       :name => random_string,
       :description => random_string,
-      :template => 'rails'
+      :template => 'rails',
+      :extensions => ["rvm", "bundler"]
     }.update(options)
 
     p = Project.new
     p.name = options[:name]
     p.description = options[:description]
     p.template = options[:template]
+    p.extensions = options[:extensions]
     p.save!
 
 

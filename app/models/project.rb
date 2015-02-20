@@ -13,12 +13,16 @@ class Project < ActiveRecord::Base
 
   after_create :create_template_defaults
 
-  attr_accessible :name, :description, :template, :archived
+  attr_accessible :name, :description, :template, :archived, :extensions
 
   scope :active,
     :include    => [:users, {:stages => [:hosts, :recipes]}, :configuration_parameters, :user_project_links],
     :conditions => {:archived => false},
     :order      => "projects.name ASC"
+
+  serialize :extensions
+
+  include CapistranoExtensions
 
   # creates the default configuration parameters based on the template
   def create_template_defaults
@@ -45,6 +49,16 @@ class Project < ActiveRecord::Base
   # returns a string with all custom tasks to be loaded by the Capistrano config
   def tasks
     ProjectConfiguration.templates[template]::TASKS
+  end
+
+  def available_extensions
+    CapistranoExtensions.available_extensions
+  end
+
+  def extensions
+    attributes["extensions"] ||= []
+    attributes["extensions"].reject!(&:blank?)
+    attributes["extensions"]
   end
 
   # returns a better form of the project name for use inside Capistrano recipes
