@@ -56,9 +56,8 @@ class Project < ActiveRecord::Base
   end
 
   def extensions
-    attributes["extensions"] ||= []
-    attributes["extensions"].reject!(&:blank?)
-    attributes["extensions"]
+    attributes["extensions"].reject!(&:blank?) if attributes["extensions"]
+    attributes["extensions"] || []
   end
 
   # returns a better form of the project name for use inside Capistrano recipes
