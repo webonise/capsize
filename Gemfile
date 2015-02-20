@@ -1,4 +1,6 @@
 source 'http://rubygems.org'
+require File.expand_path('../lib/capistrano_extensions', __FILE__)
+
 
 gem 'rails', '3.0.20'
 
@@ -24,15 +26,10 @@ gem 'prototype_legacy_helper', '0.0.0', :git => 'git://github.com/rails/prototyp
 
 
 gem 'capistrano'
-gem 'capistrano-rails'
-gem 'capistrano-rvm'
-gem 'capistrano-bundler', '~> 1.1.2'
-gem 'capistrano-rbenv'
-gem 'capistrano-composer'
-gem 'capistrano-symfony'
-gem 'capistrano-npm'
-gem 'capistrano-laravel'
-gem 'capistrano-chruby'
+
+CapistranoExtensions.gems.each do |ext|
+  gem "capistrano-#{ext}"
+end
 
 # Use unicorn as the web server
 # gem 'unicorn'

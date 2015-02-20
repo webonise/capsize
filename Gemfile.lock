@@ -142,7 +142,7 @@ PLATFORMS
 
 DEPENDENCIES
   capistrano
-  capistrano-bundler (~> 1.1.2)
+  capistrano-bundler
   capistrano-chruby
   capistrano-composer
   capistrano-laravel

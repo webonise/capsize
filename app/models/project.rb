@@ -22,7 +22,7 @@ class Project < ActiveRecord::Base
 
   serialize :extensions
 
-  AVAILABLE_EXTENSIONS = %w{rvm bundler rails/assets rails/migrations rbenv composer symfony npm laravel chruby}
+  include CapistranoExtensions
 
   # creates the default configuration parameters based on the template
   def create_template_defaults
@@ -52,12 +52,13 @@ class Project < ActiveRecord::Base
   end
 
   def available_extensions
-    AVAILABLE_EXTENSIONS
+    CapistranoExtensions.available_extensions
   end
 
   def extensions
-    attributes["extensions"].reject! {|a| a == ''} unless attributes["extensions"].nil?
     attributes["extensions"] ||= []
+    attributes["extensions"].reject!(&:blank?)
+    attributes["extensions"]
   end
 
   # returns a better form of the project name for use inside Capistrano recipes
