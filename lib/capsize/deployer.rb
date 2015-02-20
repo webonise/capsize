@@ -201,7 +201,8 @@ module Capsize
       when Net::SSH::AuthenticationFailed
         logger.important "authentication failed for `#{error.message}'"
       else
-        logger.important error.message + "\n" + error.backtrace.join("\n")
+        @deployment.log = (@deployment.log || '') + error.message + "\n" + error.backtrace.join("\n")
+        @deployment.save!
       end
     end
 
