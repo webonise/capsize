@@ -13,7 +13,7 @@ module Capsize
     attr_accessor :deployment
 
     attr_accessor :logger
-    
+
     def initialize(deployment)
       @options = {
         :recipes => [],
@@ -268,10 +268,6 @@ module Capsize
       Capistrano::Application.invoke("rvm:hook")
       Capistrano::Application.invoke("rvm:check")
       Capistrano::Application.invoke("bundler:map_bins")
-    end
-
-    def after_flow(task)
-      "after '#{task}', :custom_log"
     end
   end
 end
