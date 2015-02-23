@@ -14,8 +14,6 @@ module Capsize
 
     attr_accessor :logger
 
-    attr_reader :browser_log
-
     def initialize(deployment)
       @options = {
         :recipes => [],
@@ -79,11 +77,9 @@ module Capsize
       status = run_in_isolation do
         load_requirements
         capsize_setup(@stage)
-        set_output
         Capistrano::Application.invoke("#{@stage.name}")
         after_stage_invokations
         Capistrano::Application.invoke(options[:actions])
-        close_output
       end
 
       status
@@ -95,9 +91,13 @@ module Capsize
 
     def run_in_isolation
       read, write = IO.pipe
+      read_out, write_out = IO.pipe
 
       pid = fork do
         read.close
+        $stdout.reopen write_out
+        $stdout.sync = true
+        read_out.close
         begin
           result = yield
         rescue Exception => error
@@ -108,6 +108,10 @@ module Capsize
         exit!(0)
       end
 
+      write_out.close
+      read_out.each_line do |line|
+        append_log line
+      end
       write.close
       result = read.read
       Process.wait(pid)
@@ -196,8 +200,13 @@ module Capsize
       when Net::SSH::AuthenticationFailed
         logger.important "authentication failed for `#{error.message}'"
       else
-        logger.important error.message + "\n" + error.backtrace.join("\n")
+        append_log error.message + "\n" + error.backtrace.join("\n")
       end
+    end
+
+    def append_log(line)
+      @deployment.log = (@deployment.log || '') + line
+      @deployment.save!
     end
 
     def find_or_create_project_dir
@@ -212,10 +221,6 @@ module Capsize
       File.open(rooted("#{@project_name}/deploy.rb"), 'w+') do |f|
         @project.configuration_parameters.each do |parameter|
           f.puts print_parameter(parameter)
-        end
-          f.puts after_flow(@stage.name)
-        %w{deploy:started deploy:updated deploy:published deploy:finished}.each do |task|
-          f.puts after_flow(task)
         end
       end
     end
@@ -268,21 +273,5 @@ module Capsize
       Capistrano::Application.invoke("rvm:check")
       Capistrano::Application.invoke("bundler:map_bins")
     end
-
-    def after_flow(task)
-      "after '#{task}', :custom_log"
-    end
-
-    def set_output
-      @browser_log = StringIO.new
-      $stdout = @browser_log
-      $stdout.sync = true
-      ENV['deployment_id'] = deployment.id.to_s
-    end
-
-    def close_output
-      $stdout = STDOUT
-    end
-
   end
 end

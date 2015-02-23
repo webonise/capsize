@@ -12,6 +12,7 @@ class Project < ActiveRecord::Base
   validates_inclusion_of :template, :in => ProjectConfiguration.templates.keys
 
   after_create :create_template_defaults
+  before_save :remove_blank_extensions
 
   attr_accessible :name, :description, :template, :archived, :extensions
 
@@ -55,10 +56,9 @@ class Project < ActiveRecord::Base
     CapistranoExtensions.available_extensions
   end
 
-  def extensions
-    attributes["extensions"] ||= []
-    attributes["extensions"].reject!(&:blank?)
-    attributes["extensions"]
+  def remove_blank_extensions
+    return update_attribute("extensions", []) if attributes["extensions"].nil?
+    write_attribute("extensions", attributes["extensions"].reject(&:blank?))
   end
 
   # returns a better form of the project name for use inside Capistrano recipes

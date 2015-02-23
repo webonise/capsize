@@ -184,4 +184,13 @@ class ProjectTest < ActiveSupport::TestCase
     assert_equal project.extensions, []
   end
 
+  def test_setting_extensions
+    project = Project.new
+    project.extensions.push("foo")
+    assert project.extensions.include? "foo"
+    project.attributes["extensions"] = ["bar"]
+    project.extensions.push("foo")
+    assert project.extensions.include? "foo"
+  end
+
 end

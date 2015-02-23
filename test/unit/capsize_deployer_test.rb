@@ -294,13 +294,12 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
 
   def test_output_logs_in_browser_log
     deployer = Capsize::Deployer.new(@deployment)
-    deployer.set_output
-    print 'thisshouldshowup'
-    deployer.close_output
+    deployer.run_in_isolation do
+      print 'thisshouldshowup'
+    end
     assert $stdout == STDOUT
-    deployer.browser_log.rewind
 
-    assert_match /thisshouldshowup/, deployer.browser_log.string
+    assert_match /thisshouldshowup/, @deployment.log
   end
 
   def test_tasks_load
