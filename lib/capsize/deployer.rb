@@ -110,8 +110,7 @@ module Capsize
 
       write_out.close
       read_out.each_line do |line|
-        @deployment.log = (@deployment.log || '') + line
-        @deployment.save!
+        append_log line
       end
       write.close
       result = read.read
@@ -201,9 +200,13 @@ module Capsize
       when Net::SSH::AuthenticationFailed
         logger.important "authentication failed for `#{error.message}'"
       else
-        @deployment.log = (@deployment.log || '') + error.message + "\n" + error.backtrace.join("\n")
-        @deployment.save!
+        append_log error.message + "\n" + error.backtrace.join("\n")
       end
+    end
+
+    def append_log(line)
+      @deployment.log = (@deployment.log || '') + line
+      @deployment.save!
     end
 
     def find_or_create_project_dir
