@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20150217151142) do
+ActiveRecord::Schema.define(:version => 20150223141212) do
 
   create_table "auth_sources", :force => true do |t|
     t.string   "type",              :limit => 30, :default => "",    :null => false
@@ -81,7 +81,7 @@ ActiveRecord::Schema.define(:version => 20150217151142) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.boolean  "archived",    :default => false
-    t.string   "extensions"
+    t.string   "extensions",  :default => "--- []\n"
   end
 
   create_table "recipe_versions", :force => true do |t|
