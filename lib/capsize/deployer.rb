@@ -41,7 +41,7 @@ module Capsize
 
     def list_tasks
       write_capfile
-      output = run_in_isolation do
+      output = run_in_isolation(false) do
         require 'capistrano/all'
         cap = Capistrano::Application.new
         Rake.application = cap
@@ -73,8 +73,7 @@ module Capsize
       write_deploy
       write_stage
 
-
-      status = run_in_isolation do
+      run_in_isolation do
         load_requirements
         capsize_setup(@stage)
         Capistrano::Application.invoke("#{@stage.name}")
@@ -82,41 +81,54 @@ module Capsize
         Capistrano::Application.invoke(options[:actions])
       end
 
-      status
+      true
 
     rescue Exception => error
       handle_error(error)
       return false
     end
 
-    def run_in_isolation
+    def run_in_isolation(capture_out=true)
       read, write = IO.pipe
       read_out, write_out = IO.pipe
-
-      pid = fork do
-        read.close
-        $stdout.reopen write_out
-        $stdout.sync = true
-        read_out.close
-        begin
-          result = yield
-        rescue Exception => error
-          handle_error(error)
-          result = nil
+      begin
+        pid = fork do
+          read.close
+          $stdout.reopen write_out
+          $stdout.sync = true
+          read_out.close
+          begin
+            result = yield
+            write.puts result
+          rescue Exception => error
+            handle_error(error)
+            result = nil
+          ensure
+            exit!(0)
+          end
         end
-        write.puts result
-        exit!(0)
-      end
 
-      write_out.close
-      read_out.each_line do |line|
-        append_log line
+        write_out.close
+        read_log_chunks(read_out) if capture_out
+        write.close
+        result = read.read
+        return false if result == "\n"
+        result
+      ensure
+        Process.wait(pid)
       end
-      write.close
-      result = read.read
-      Process.wait(pid)
-      return false if result == "\n"
-      result
+    end
+
+    def read_log_chunks(read_out)
+      loop do
+        begin
+          @deployment.log_chunks.create!(:content => read_out.read_nonblock(255))
+        rescue IO::WaitReadable
+          retry
+        rescue EOFError
+          return
+        end
+      end
     end
 
     # saves the process ID of this running deployment in order
@@ -125,6 +137,7 @@ module Capsize
       @deployment.pid = Process.pid
       @deployment.save!
     end
+
 
     # casts a given string to the correct Ruby value
     # e.g. 'true' to true and ':sym' to :sym
@@ -200,13 +213,8 @@ module Capsize
       when Net::SSH::AuthenticationFailed
         logger.important "authentication failed for `#{error.message}'"
       else
-        append_log error.message + "\n" + error.backtrace.join("\n")
+        logger.important error.message + "\n" + error.backtrace.join("\n")
       end
-    end
-
-    def append_log(line)
-      @deployment.log = (@deployment.log || '') + line
-      @deployment.save!
     end
 
     def find_or_create_project_dir

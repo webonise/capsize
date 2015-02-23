@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20150223141212) do
+ActiveRecord::Schema.define(:version => 20150223181947) do
 
   create_table "auth_sources", :force => true do |t|
     t.string   "type",              :limit => 30, :default => "",    :null => false
@@ -67,6 +67,13 @@ ActiveRecord::Schema.define(:version => 20150223141212) do
 
   create_table "hosts", :force => true do |t|
     t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "log_chunks", :force => true do |t|
+    t.string   "content"
+    t.integer  "deployment_id"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
