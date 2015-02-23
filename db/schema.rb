@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20150223181947) do
+ActiveRecord::Schema.define(:version => 20150223211710) do
 
   create_table "auth_sources", :force => true do |t|
     t.string   "type",              :limit => 30, :default => "",    :null => false
@@ -44,7 +44,6 @@ ActiveRecord::Schema.define(:version => 20150223181947) do
 
   create_table "deployments", :force => true do |t|
     t.string   "task"
-    t.text     "log"
     t.integer  "stage_id"
     t.datetime "created_at"
     t.datetime "updated_at"

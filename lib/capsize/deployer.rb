@@ -91,32 +91,30 @@ module Capsize
     def run_in_isolation(capture_out=true)
       read, write = IO.pipe
       read_out, write_out = IO.pipe
-      begin
-        pid = fork do
-          read.close
-          $stdout.reopen write_out
-          $stdout.sync = true
-          read_out.close
-          begin
-            result = yield
-            write.puts result
-          rescue Exception => error
-            handle_error(error)
-            result = nil
-          ensure
-            exit!(0)
-          end
+      pid = fork do
+        read.close
+        $stdout.reopen write_out
+        $stdout.sync = true
+        read_out.close
+        begin
+          result = yield
+          write.puts result
+        rescue Exception => error
+          handle_error(error)
+          result = nil
+        ensure
+          exit!(0)
         end
-
-        write_out.close
-        read_log_chunks(read_out) if capture_out
-        write.close
-        result = read.read
-        return false if result == "\n"
-        result
-      ensure
-        Process.wait(pid)
       end
+
+      write_out.close
+      read_log_chunks(read_out) if capture_out
+      write.close
+      result = read.read
+      return false if result == "\n"
+      result
+    ensure
+      Process.wait(pid)
     end
 
     def read_log_chunks(read_out)
