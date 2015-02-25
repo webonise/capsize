@@ -393,4 +393,12 @@ class DeploymentTest < ActiveSupport::TestCase
     assert deployment.effective_and_prompt_config.map(&:name).include?('bar-123')
   end
 
+  def test_log_chunk_logging
+    deployer = Capsize::Deployer.new(@deployment)
+
+    6.times { |i| deployer.logger.write_msg("foo#{i}bar") }
+    log = @deployment.log
+    6.times { |i| assert_match /foo#{i}bar/, @deployment.log}
+  end
+
 end

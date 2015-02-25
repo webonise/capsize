@@ -2,6 +2,7 @@ class Deployment < ActiveRecord::Base
   belongs_to :stage
   belongs_to :user
   has_and_belongs_to_many :roles
+  has_many :log_chunks
 
   validates_presence_of :task, :stage, :user
   validates_length_of :task, :maximum => 250
@@ -29,6 +30,10 @@ class Deployment < ActiveRecord::Base
 
   validate :check_stage_ready, :on => :create
 
+  def log
+    self.log_chunks.map { |chunk| chunk.content }.join
+  end
+  
   # check (on on creation ) that the stage is ready
   # his has to done only on creation as later DB logging MUST always work
   def check_stage_ready
