@@ -72,14 +72,13 @@ module Capsize
       find_or_create_project_dir
       write_deploy
       write_stage
+      write_capfile
 
-      run_in_isolation do
-        load_requirements
-        Capistrano::Application.invoke("#{@stage.name}")
-        Capistrano::Application.invoke(options[:actions])
+      status = run_in_isolation do
+        exec "cap #{@stage.name} deploy"
       end
 
-      return true
+      return status 
 
     rescue Exception => error
       handle_error(error)
@@ -215,6 +214,7 @@ module Capsize
 
     def find_or_create_project_dir
       FileUtils.mkdir_p(rooted("#{@project_name}"))
+      FileUtils.mkdir_p(rooted("#{@project_name}/stages"))
     end
 
     def write_deploy
@@ -230,8 +230,8 @@ module Capsize
     end
 
     def write_stage
-      @logger.info("Writing stage configuration to #{@project_name}/#{@stage.name}.rb")
-      File.open(rooted("#{@project_name}/#{@stage.name}.rb"), 'w+') do |f|
+      @logger.info("Writing stage configuration to #{@project_name}/stages/#{@stage.name}.rb")
+      File.open(rooted("#{@project_name}/stages/#{@stage.name}.rb"), 'w+') do |f|
         @stage.roles.each do |role|
           unless @deployment.excluded_host_ids.include?(role.host_id.to_s)
             f.puts "role :#{role.name}, %w{#{find_host_user(@project)}@#{role.host.name}}"
@@ -248,6 +248,9 @@ module Capsize
 
     def write_capfile
       File.open(Rails.root.join("Capfile"), 'w+') do |f|
+        f.puts "set :deploy_config_path, '#{rooted("#{@project_name}/deploy.rb")}'"
+        f.puts "set :stage_config_path, '#{rooted("#{@project_name}/stages/")}'"
+        f.puts "set :stage, '#{@stage.name}'"
         f.puts "require 'capistrano/setup'"
         f.puts "require 'capistrano/deploy'"
         @project.extensions.each do |ext|
@@ -261,18 +264,6 @@ module Capsize
       user = project.configuration_parameters.find_by_name('user')
       raise ArgumentError, @logger.important("You must define the user parameter before deploying") if user.nil?
       user.value
-    end
-
-    def load_requirements
-      require "capistrano/all"
-      load "lib/stages.rb"
-      Capistrano::DSL::Stages.set_stages(@stage.name)
-      require "capsize/capsize_setup"
-      capsize_setup(@stage)
-      require "capistrano/deploy"
-      @project.extensions.each do |ext|
-        require "capistrano/#{ext}"
-      end
     end
   end
 end
