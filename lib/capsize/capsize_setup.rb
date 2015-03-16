@@ -10,7 +10,6 @@ end
 
 def capsize_setup(stage)
   Rake::Task.define_task(stage.name) do
-    set(:stage, stage.name.to_sym)
 
     invoke 'load:defaults'
     load rooted("#{stage.project.capsize_project_name}/deploy.rb")

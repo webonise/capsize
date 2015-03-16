@@ -61,10 +61,10 @@ module Capsize
 
       unless execute!
         deployment.complete_with_error!
-        false
+        return false
       else
         deployment.complete_successfully!
-        true
+        return true
       end
     end
 
@@ -75,13 +75,11 @@ module Capsize
 
       run_in_isolation do
         load_requirements
-        capsize_setup(@stage)
         Capistrano::Application.invoke("#{@stage.name}")
-        after_stage_invokations
         Capistrano::Application.invoke(options[:actions])
       end
 
-      true
+      return true
 
     rescue Exception => error
       handle_error(error)
@@ -267,17 +265,14 @@ module Capsize
 
     def load_requirements
       require "capistrano/all"
+      load "lib/stages.rb"
+      Capistrano::DSL::Stages.set_stages(@stage.name)
       require "capsize/capsize_setup"
+      capsize_setup(@stage)
       require "capistrano/deploy"
       @project.extensions.each do |ext|
         require "capistrano/#{ext}"
       end
-    end
-
-    def after_stage_invokations
-      Capistrano::Application.invoke("rvm:hook")
-      Capistrano::Application.invoke("rvm:check")
-      Capistrano::Application.invoke("bundler:map_bins")
     end
   end
 end
