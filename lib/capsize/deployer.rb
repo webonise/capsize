@@ -78,7 +78,7 @@ module Capsize
         exec "cap #{@stage.name} deploy"
       end
 
-      return status 
+      return status
 
     rescue Exception => error
       handle_error(error)
@@ -234,7 +234,7 @@ module Capsize
       File.open(rooted("#{@project_name}/stages/#{@stage.name}.rb"), 'w+') do |f|
         @stage.roles.each do |role|
           unless @deployment.excluded_host_ids.include?(role.host_id.to_s)
-            f.puts "role :#{role.name}, %w{#{find_host_user(@project)}@#{role.host.name}}"
+            f.puts "role :#{role.name}, %w{#{role.hostname_and_port}}"
           end
         end
         @stage.configuration_parameters.each do |parameter|
