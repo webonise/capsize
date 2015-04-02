@@ -75,7 +75,7 @@ module Capsize
       write_capfile
 
       status = run_in_isolation do
-        exec "cap #{@stage.name} deploy"
+        exec "cap #{@stage.name} #{options[:actions]}"
       end
 
       return status
@@ -234,7 +234,7 @@ module Capsize
       File.open(rooted("#{@project_name}/stages/#{@stage.name}.rb"), 'w+') do |f|
         @stage.roles.each do |role|
           unless @deployment.excluded_host_ids.include?(role.host_id.to_s)
-            f.puts "role :#{role.name}, %w{#{role.hostname_and_port}}"
+            f.puts "role :#{role.name}, %w{#{find_host_user}@#{role.hostname_and_port}}"
           end
         end
         @stage.configuration_parameters.each do |parameter|
@@ -260,8 +260,10 @@ module Capsize
       end
     end
 
-    def find_host_user(project)
-      user = project.configuration_parameters.find_by_name('user')
+    def find_host_user
+      project_user = @project.configuration_parameters.find_by_name('user')
+      stage_user = @stage.configuration_parameters.find_by_name('user')
+      user = stage_user.nil? ? project_user : stage_user
       raise ArgumentError, @logger.important("You must define the user parameter before deploying") if user.nil?
       user.value
     end
