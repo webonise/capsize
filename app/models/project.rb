@@ -25,6 +25,10 @@ class Project < ActiveRecord::Base
 
   include CapistranoExtensions
 
+  def self.alphabetic_groups
+	  projects = Project.order(:name)
+  end
+
   # creates the default configuration parameters based on the template
   def create_template_defaults
     unless template.blank?
