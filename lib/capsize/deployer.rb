@@ -88,11 +88,15 @@ module Capsize
     def run_in_isolation(capture_out=true)
       read, write = IO.pipe
       read_out, write_out = IO.pipe
+      read_err, write_err = IO.pipe
+      
       pid = fork do
         read.close
         $stdout.reopen write_out
+        $stderr.reopen write_err
         $stdout.sync = true
         read_out.close
+        read_err.close
         begin
           result = yield
           write.puts result
@@ -105,10 +109,12 @@ module Capsize
       end
 
       write_out.close
+      write_err.close
       read_log_chunks(read_out) if capture_out
+      err = read_err.read
       write.close
       result = read.read
-      return false if result == "\n"
+      return false if result == "\n" || err.match('cap aborted!')
       result
     ensure
       Process.wait(pid)
