@@ -158,6 +158,7 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
 
     # do a random deploy
     deployer = Capsize::Deployer.new(@deployment)
+    deployer.stubs(:run_in_isolation).returns(true)
     deployer.invoke_task!
 
     # the log in the DB should not be empty
@@ -176,6 +177,7 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
     @stage.configuration_parameters.delete_all
 
     deployer = Capsize::Deployer.new(@deployment)
+    deployer.stubs(:run_in_isolation).returns(true)
     deployer.invoke_task!
 
     # the log in the DB should not be empty
@@ -197,20 +199,11 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
     deployment = create_new_deployment(:stage => stage_with_prompt, :task => 'deploy', :prompt_config => {'password' => 'pass1234'})
 
     write_deployer_files(deployment)
-    file = File.open(rooted("#{@project.capsize_project_name}/#{stage_with_prompt.name}.rb"))
+    file = File.open(rooted("#{@project.capsize_project_name}/stages/#{stage_with_prompt.name}.rb"))
     contents = file.read
 
     assert_match(/set :password, 'pass1234'/, contents)
     remove_directory(stage_with_prompt.project.capsize_project_name)
-  end
-
-  def test_loading_of_template_tasks
-    @project.template = 'mongrel_rails'
-    @project.save!
-
-    deployer = Capsize::Deployer.new(@deployment)
-    deployer.invoke_task!
-    remove_directory(@deployment.stage.project.capsize_project_name)
   end
 
   def test_custom_recipes
@@ -237,7 +230,6 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
     deployer.run_in_isolation do
       raise RuntimeError
     end
-    deployer.invoke_task!
     remove_directory(@deployment.stage.project.capsize_project_name)
 
 
@@ -248,6 +240,7 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
   def test_deploy_file_is_written
     assert !File.exist?(rooted("#{@deployment.stage.project.capsize_project_name}/deploy.rb"))
     deployer = Capsize::Deployer.new(@deployment)
+    deployer.stubs(:run_in_isolation).returns(true)
     deployer.invoke_task!
     assert File.exist?(rooted("#{@deployment.stage.project.capsize_project_name}/deploy.rb"))
     remove_directory(@deployment.stage.project.capsize_project_name)
@@ -256,8 +249,9 @@ class Capsize::DeployerTest < ActiveSupport::TestCase
   def test_stage_file_is_written
     assert !File.exist?(rooted("#{@deployment.stage.project.capsize_project_name}/#{@deployment.stage.name}.rb"))
     deployer = Capsize::Deployer.new(@deployment)
+    deployer.stubs(:run_in_isolation).returns(true)
     deployer.invoke_task!
-    assert File.exist?(rooted("#{@deployment.stage.project.capsize_project_name}/#{@deployment.stage.name}.rb"))
+    assert File.exist?(rooted("#{@deployment.stage.project.capsize_project_name}/stages/#{@deployment.stage.name}.rb"))
     remove_directory(@deployment.stage.project.capsize_project_name)
   end
 

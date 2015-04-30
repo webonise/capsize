@@ -75,10 +75,10 @@ module Capsize
       write_capfile
 
       status = run_in_isolation do
-        exec "cap #{@stage.name} deploy"
+        exec "cap #{@stage.name} #{options[:actions]}"
       end
 
-      return status 
+      return status
 
     rescue Exception => error
       handle_error(error)
@@ -88,11 +88,15 @@ module Capsize
     def run_in_isolation(capture_out=true)
       read, write = IO.pipe
       read_out, write_out = IO.pipe
+      read_err, write_err = IO.pipe
+      
       pid = fork do
         read.close
         $stdout.reopen write_out
+        $stderr.reopen write_err
         $stdout.sync = true
         read_out.close
+        read_err.close
         begin
           result = yield
           write.puts result
@@ -105,10 +109,12 @@ module Capsize
       end
 
       write_out.close
+      write_err.close
       read_log_chunks(read_out) if capture_out
+      err = read_err.read
       write.close
       result = read.read
-      return false if result == "\n"
+      return false if result == "\n" || err.match('cap aborted!')
       result
     ensure
       Process.wait(pid)
@@ -234,7 +240,7 @@ module Capsize
       File.open(rooted("#{@project_name}/stages/#{@stage.name}.rb"), 'w+') do |f|
         @stage.roles.each do |role|
           unless @deployment.excluded_host_ids.include?(role.host_id.to_s)
-            f.puts "role :#{role.name}, %w{#{find_host_user(@project)}@#{role.host.name}}"
+            f.puts "role :#{role.name}, %w{#{find_host_user}@#{role.hostname_and_port}}"
           end
         end
         @stage.configuration_parameters.each do |parameter|
@@ -260,8 +266,10 @@ module Capsize
       end
     end
 
-    def find_host_user(project)
-      user = project.configuration_parameters.find_by_name('user')
+    def find_host_user
+      project_user = @project.configuration_parameters.find_by_name('user')
+      stage_user = @stage.configuration_parameters.find_by_name('user')
+      user = stage_user.nil? ? project_user : stage_user
       raise ArgumentError, @logger.important("You must define the user parameter before deploying") if user.nil?
       user.value
     end
